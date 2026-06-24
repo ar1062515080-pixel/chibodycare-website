@@ -15,7 +15,7 @@ export const testimonials: Testimonial[] = [
     quote:
       "The most relaxing massage I've had in Adelaide. The space is calm, the therapists are skilled, and I left feeling completely renewed.",
     rating: 5,
-    service: "Signature Relaxation Massage",
+    service: "Relaxation Massage — 60 min",
   },
   {
     id: "t2",
@@ -24,7 +24,7 @@ export const testimonials: Testimonial[] = [
     quote:
       "After months of shoulder pain, a few remedial sessions made a huge difference. Genuinely caring and professional team.",
     rating: 5,
-    service: "Remedial Massage",
+    service: "Remedial / Pregnancy Massage — 60 min",
   },
   {
     id: "t3",
@@ -33,16 +33,16 @@ export const testimonials: Testimonial[] = [
     quote:
       "I booked acupuncture for sleep and stress and noticed results almost immediately. Mei is wonderful and so knowledgeable.",
     rating: 5,
-    service: "Acupuncture",
+    service: "Acupuncture — Initial",
   },
   {
     id: "t4",
     name: "Olivia W.",
     location: "Westfield West Lakes",
     quote:
-      "The reflexology foot treatment is my monthly ritual now. Such a beautiful, grounding experience every single time.",
+      "The foot care treatment is my monthly ritual now. Such a beautiful, grounding experience every single time.",
     rating: 5,
-    service: "Reflexology Foot Treatment",
+    service: "Foot Care — 60 min",
   },
   {
     id: "t5",
@@ -51,7 +51,7 @@ export const testimonials: Testimonial[] = [
     quote:
       "Booking online was effortless and the deep recovery session was exactly what my body needed. Highly recommend.",
     rating: 5,
-    service: "Deep Recovery 90",
+    service: "Deep Recovery — 90 min",
   },
   {
     id: "t6",
@@ -60,6 +60,6 @@ export const testimonials: Testimonial[] = [
     quote:
       "From the welcome to the aromatherapy massage, everything felt premium yet warm. My new go-to wellness spot.",
     rating: 5,
-    service: "Aromatherapy Massage",
+    service: "Aromatherapy Massage — 60 min",
   },
 ];

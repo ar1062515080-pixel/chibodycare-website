@@ -40,14 +40,14 @@ Features:
 
 - Step progress indicator (with back-navigation to completed steps)
 - Live booking summary sidebar on desktop, summary card on mobile
-- Deep-link support to preselect a treatment, e.g. `/book?service=glow-facial`
+- Deep-link support to preselect a treatment, e.g. `/book?service=relaxation-60`
   (multiple supported via `?service=a&service=b` or `?service=a,b`)
 
 ## Static data layer
 
 All content lives in clean, typed modules under `src/lib/`:
 
-- `services.ts` — treatment categories & services
+- `services.ts` — treatment categories & services (Relaxation, Deep Recovery, Foot Care, Aromatherapy, Remedial Treatment / Pregnancy Massage, Acupuncture, Additional Services, Deluxe Customised) with real brochure durations & prices
 - `staff.ts` — practitioners and their specialties
 - `testimonials.ts` — client testimonials
 - `business.ts` — business info, opening hours and the 13 Adelaide locations

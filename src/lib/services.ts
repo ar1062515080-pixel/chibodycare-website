@@ -1,12 +1,12 @@
 export type CategoryId =
-  | "relaxation-massage"
-  | "remedial-massage"
-  | "acupuncture"
+  | "relaxation"
+  | "deep-recovery"
   | "foot-care"
   | "aromatherapy"
-  | "deep-recovery"
-  | "chinese-medicine"
-  | "cupping-additional";
+  | "remedial-pregnancy"
+  | "acupuncture"
+  | "additional-services"
+  | "deluxe-customised";
 
 export type ServiceCategory = {
   id: CategoryId;
@@ -31,35 +31,27 @@ export type Service = {
 
 export const categories: ServiceCategory[] = [
   {
-    id: "relaxation-massage",
-    name: "Relaxation Massage",
+    id: "relaxation",
+    name: "Relaxation",
     tagline: "Unwind & soften tension",
     description:
       "Flowing, full-body massage designed to calm the nervous system, ease everyday stress and leave you deeply rested.",
     icon: "🌿",
   },
   {
-    id: "remedial-massage",
-    name: "Remedial Massage",
-    tagline: "Targeted therapeutic relief",
+    id: "deep-recovery",
+    name: "Deep Recovery",
+    tagline: "Reset for body & mind",
     description:
-      "Clinical, outcome-focused treatment for muscular pain, postural strain and recovery from injury.",
-    icon: "💪",
-  },
-  {
-    id: "acupuncture",
-    name: "Acupuncture",
-    tagline: "Restore natural balance",
-    description:
-      "Gentle, precise needling to support pain relief, energy, sleep and overall wellbeing.",
-    icon: "🪡",
+      "Firmer, focused massage to release deep-seated tension and support full-body recovery.",
+    icon: "♨️",
   },
   {
     id: "foot-care",
     name: "Foot Care",
     tagline: "Ground & revive",
     description:
-      "Reflexology and therapeutic foot treatments to relieve tired legs and reconnect body and mind.",
+      "Reflexology-style foot treatments — on their own or combined with hands, neck, shoulders and back — to relieve tired legs and reconnect body and mind.",
     icon: "🦶",
   },
   {
@@ -67,107 +59,303 @@ export const categories: ServiceCategory[] = [
     name: "Aromatherapy",
     tagline: "Sensory restoration",
     description:
-      "Botanical essential-oil rituals that soothe the senses and elevate any massage into pure escape.",
+      "Botanical essential-oil rituals that soothe the senses and elevate your massage into pure escape.",
     icon: "🕯️",
   },
   {
-    id: "deep-recovery",
-    name: "Deep Recovery",
-    tagline: "Reset for body & mind",
+    id: "remedial-pregnancy",
+    name: "Remedial Treatment / Pregnancy Massage",
+    tagline: "Targeted therapeutic relief",
     description:
-      "Longer, layered sessions combining deep tissue, heat and stretch for full-body recovery.",
-    icon: "♨️",
+      "Clinical, outcome-focused treatment for muscular pain and postural strain, including gentle massage tailored for pregnancy.",
+    icon: "💆",
   },
   {
-    id: "chinese-medicine",
-    name: "Chinese Medicine Consultation",
-    tagline: "Personalised wellness plans",
+    id: "acupuncture",
+    name: "Acupuncture",
+    tagline: "Restore natural balance",
     description:
-      "Traditional Chinese Medicine assessment with tailored lifestyle, herbal and treatment guidance.",
-    icon: "🍵",
+      "Traditional acupuncture, cosmetic acupuncture and Chinese medicine consultations to support pain relief, energy and overall wellbeing.",
+    icon: "🪡",
   },
   {
-    id: "cupping-additional",
-    name: "Cupping & Additional Services",
-    tagline: "Boost your treatment",
+    id: "additional-services",
+    name: "Additional Services",
+    tagline: "Enhance your treatment",
     description:
-      "Cupping, gua sha and targeted add-ons to enhance circulation and complement your session.",
-    icon: "🫧",
+      "Ear candling, traditional fire cupping and cupping-with-massage combinations to complement your session.",
+    icon: "🫙",
+  },
+  {
+    id: "deluxe-customised",
+    name: "Deluxe Customised",
+    tagline: "The complete experience",
+    description:
+      "Our signature whole body & foot massage sessions — generous, fully customised treatments for total restoration.",
+    icon: "✨",
   },
 ];
 
 export const services: Service[] = [
-  // Relaxation Massage
+  // Relaxation
   {
-    id: "signature-relaxation",
-    name: "Signature Relaxation Massage",
-    categoryId: "relaxation-massage",
+    id: "relaxation-20",
+    name: "Relaxation Massage — 20 min",
+    categoryId: "relaxation",
     description:
-      "Our soothing full-body flow with calming pressure to melt away tension head to toe.",
+      "A quick reset for neck, shoulders and back — ideal on a busy day.",
+    durationMinutes: 20,
+    price: 40,
+  },
+  {
+    id: "relaxation-30",
+    name: "Relaxation Massage — 30 min",
+    categoryId: "relaxation",
+    description: "A focused half-hour to ease tension and unwind.",
+    durationMinutes: 30,
+    price: 55,
+  },
+  {
+    id: "relaxation-45",
+    name: "Relaxation Massage — 45 min",
+    categoryId: "relaxation",
+    description: "Soothing, flowing massage to soften everyday stress.",
+    durationMinutes: 45,
+    price: 80,
+  },
+  {
+    id: "relaxation-60",
+    name: "Relaxation Massage — 60 min",
+    categoryId: "relaxation",
+    description:
+      "Our soothing full-body flow to melt away tension head to toe.",
     durationMinutes: 60,
-    price: 99,
+    price: 100,
     featured: true,
     popular: true,
   },
   {
-    id: "express-relaxation",
-    name: "Express Relaxation Massage",
-    categoryId: "relaxation-massage",
-    description:
-      "A focused 30-minute reset for neck, shoulders and back — perfect on a lunch break.",
-    durationMinutes: 30,
-    price: 59,
+    id: "relaxation-90",
+    name: "Relaxation Massage — 90 min",
+    categoryId: "relaxation",
+    description: "A generous escape for complete unwinding and deep calm.",
+    durationMinutes: 90,
+    price: 150,
   },
   {
-    id: "extended-relaxation",
-    name: "Extended Relaxation Ritual",
-    categoryId: "relaxation-massage",
-    description:
-      "A generous 90-minute escape for complete unwinding and deep calm.",
-    durationMinutes: 90,
-    price: 139,
+    id: "relaxation-120",
+    name: "Relaxation Massage — 120 min",
+    categoryId: "relaxation",
+    description: "The ultimate two-hour journey into total relaxation.",
+    durationMinutes: 120,
+    price: 200,
   },
 
-  // Remedial Massage
+  // Deep Recovery
   {
-    id: "remedial-massage",
-    name: "Remedial Massage",
-    categoryId: "remedial-massage",
+    id: "deep-recovery-20",
+    name: "Deep Recovery — 20 min",
+    categoryId: "deep-recovery",
+    description: "Targeted firm pressure for a specific area of tension.",
+    durationMinutes: 20,
+    price: 40,
+  },
+  {
+    id: "deep-recovery-30",
+    name: "Deep Recovery — 30 min",
+    categoryId: "deep-recovery",
+    description: "A focused deep-tissue session for tight muscles.",
+    durationMinutes: 30,
+    price: 55,
+  },
+  {
+    id: "deep-recovery-45",
+    name: "Deep Recovery — 45 min",
+    categoryId: "deep-recovery",
+    description: "Sustained pressure to release deeper muscle layers.",
+    durationMinutes: 45,
+    price: 80,
+  },
+  {
+    id: "deep-recovery-60",
+    name: "Deep Recovery — 60 min",
+    categoryId: "deep-recovery",
     description:
-      "Assessment and treatment of muscular tension, knots and restricted movement.",
+      "Full-body deep-tissue work to ease chronic tension and aid recovery.",
     durationMinutes: 60,
-    price: 109,
+    price: 100,
+    featured: true,
+  },
+  {
+    id: "deep-recovery-90",
+    name: "Deep Recovery — 90 min",
+    categoryId: "deep-recovery",
+    description: "An extended deep-recovery session for complete reset.",
+    durationMinutes: 90,
+    price: 150,
+  },
+
+  // Foot Care
+  {
+    id: "foot-care-20",
+    name: "Foot Care — 20 min",
+    categoryId: "foot-care",
+    description: "A quick, reviving foot treatment for tired feet.",
+    durationMinutes: 20,
+    price: 40,
+  },
+  {
+    id: "foot-care-30",
+    name: "Foot Care — 30 min",
+    categoryId: "foot-care",
+    description: "Pressure-point foot therapy to relieve tension.",
+    durationMinutes: 30,
+    price: 55,
+  },
+  {
+    id: "foot-care-45",
+    name: "Foot Care — 45 min",
+    categoryId: "foot-care",
+    description: "An extended foot session to restore whole-body balance.",
+    durationMinutes: 45,
+    price: 80,
+  },
+  {
+    id: "foot-care-60",
+    name: "Foot Care — 60 min",
+    categoryId: "foot-care",
+    description: "A full hour of grounding, restorative foot therapy.",
+    durationMinutes: 60,
+    price: 100,
     featured: true,
     popular: true,
   },
   {
-    id: "deep-tissue-massage",
-    name: "Deep Tissue Massage",
-    categoryId: "remedial-massage",
-    description:
-      "Firm, sustained pressure to release chronic tension in deeper muscle layers.",
+    id: "foot-care-60-hands",
+    name: "Foot Care — 60 min (incl. Hands Massage)",
+    categoryId: "foot-care",
+    description: "Foot therapy combined with a soothing hands massage.",
     durationMinutes: 60,
-    price: 115,
+    price: 100,
   },
   {
-    id: "sports-recovery-massage",
-    name: "Sports Recovery Massage",
-    categoryId: "remedial-massage",
+    id: "foot-care-60-neck-shoulders",
+    name: "Foot Care — 60 min (incl. Neck & Shoulders Massage)",
+    categoryId: "foot-care",
     description:
-      "Performance-focused treatment to aid recovery, mobility and injury prevention.",
+      "Foot therapy combined with a relaxing neck and shoulders massage.",
+    durationMinutes: 60,
+    price: 100,
+  },
+  {
+    id: "foot-care-90-neck-shoulders-back",
+    name: "Foot Care — 90 min (incl. Neck, Shoulders & Back Massage)",
+    categoryId: "foot-care",
+    description:
+      "Extended foot therapy with neck, shoulders and back massage for full relief.",
+    durationMinutes: 90,
+    price: 150,
+  },
+
+  // Aromatherapy
+  {
+    id: "aromatherapy-45",
+    name: "Aromatherapy Massage — 45 min",
+    categoryId: "aromatherapy",
+    description:
+      "A botanical essential-oil massage to soothe the senses and relax.",
     durationMinutes: 45,
-    price: 99,
+    price: 90,
+  },
+  {
+    id: "aromatherapy-60",
+    name: "Aromatherapy Massage — 60 min",
+    categoryId: "aromatherapy",
+    description:
+      "A full-body massage enriched with bespoke essential-oil blends.",
+    durationMinutes: 60,
+    price: 120,
+    featured: true,
+  },
+  {
+    id: "aromatherapy-90",
+    name: "Aromatherapy Massage — 90 min",
+    categoryId: "aromatherapy",
+    description: "An indulgent, sensory escape for deep relaxation.",
+    durationMinutes: 90,
+    price: 170,
+  },
+  {
+    id: "aromatherapy-120",
+    name: "Aromatherapy Massage — 120 min",
+    categoryId: "aromatherapy",
+    description: "The ultimate two-hour aromatherapy ritual.",
+    durationMinutes: 120,
+    price: 220,
+  },
+
+  // Remedial Treatment / Pregnancy Massage
+  {
+    id: "remedial-20",
+    name: "Remedial / Pregnancy Massage — 20 min",
+    categoryId: "remedial-pregnancy",
+    description: "A focused remedial treatment for a specific concern.",
+    durationMinutes: 20,
+    price: 40,
+  },
+  {
+    id: "remedial-30",
+    name: "Remedial / Pregnancy Massage — 30 min",
+    categoryId: "remedial-pregnancy",
+    description: "Targeted remedial work for muscular tension.",
+    durationMinutes: 30,
+    price: 55,
+  },
+  {
+    id: "remedial-45",
+    name: "Remedial / Pregnancy Massage — 45 min",
+    categoryId: "remedial-pregnancy",
+    description: "Therapeutic massage for pain, posture and tension.",
+    durationMinutes: 45,
+    price: 80,
+  },
+  {
+    id: "remedial-60",
+    name: "Remedial / Pregnancy Massage — 60 min",
+    categoryId: "remedial-pregnancy",
+    description:
+      "Clinical, outcome-focused treatment — including gentle pregnancy massage.",
+    durationMinutes: 60,
+    price: 100,
+    featured: true,
+    popular: true,
+  },
+  {
+    id: "remedial-90",
+    name: "Remedial / Pregnancy Massage — 90 min",
+    categoryId: "remedial-pregnancy",
+    description: "An extended remedial session for lasting relief.",
+    durationMinutes: 90,
+    price: 150,
+  },
+  {
+    id: "remedial-120",
+    name: "Remedial / Pregnancy Massage — 120 min",
+    categoryId: "remedial-pregnancy",
+    description: "A comprehensive two-hour therapeutic treatment.",
+    durationMinutes: 120,
+    price: 200,
   },
 
   // Acupuncture
   {
     id: "acupuncture-initial",
-    name: "Acupuncture — Initial Session",
+    name: "Acupuncture — Initial",
     categoryId: "acupuncture",
     description:
-      "Comprehensive first consultation and treatment tailored to your health goals.",
-    durationMinutes: 75,
-    price: 125,
+      "Comprehensive first consultation and acupuncture treatment tailored to you.",
+    durationMinutes: 60,
+    price: 120,
     featured: true,
   },
   {
@@ -175,125 +363,134 @@ export const services: Service[] = [
     name: "Acupuncture — Follow Up",
     categoryId: "acupuncture",
     description:
-      "Ongoing acupuncture treatment to maintain balance, manage pain and support wellbeing.",
+      "Ongoing acupuncture to maintain balance, manage pain and support wellbeing.",
     durationMinutes: 45,
-    price: 89,
+    price: 100,
   },
-
-  // Foot Care
   {
-    id: "reflexology",
-    name: "Reflexology Foot Treatment",
-    categoryId: "foot-care",
-    description:
-      "Pressure-point foot therapy to relieve tension and restore whole-body balance.",
-    durationMinutes: 45,
-    price: 75,
-    featured: true,
+    id: "acupuncture-massage-60",
+    name: "Acupuncture & Massage — 60 min",
+    categoryId: "acupuncture",
+    description: "Acupuncture combined with massage in one restorative session.",
+    durationMinutes: 60,
+    price: 155,
     popular: true,
   },
   {
-    id: "foot-haven-ritual",
-    name: "Foot Haven Ritual",
-    categoryId: "foot-care",
-    description:
-      "Warm soak, exfoliation and a soothing massage for tired feet and legs.",
-    durationMinutes: 60,
-    price: 95,
-  },
-
-  // Aromatherapy
-  {
-    id: "aromatherapy-massage",
-    name: "Aromatherapy Massage",
-    categoryId: "aromatherapy",
-    description:
-      "A full-body massage enriched with bespoke essential-oil blends for deep relaxation.",
-    durationMinutes: 60,
-    price: 109,
-    featured: true,
-  },
-  {
-    id: "glow-facial",
-    name: "Aromatherapy Glow Facial",
-    categoryId: "aromatherapy",
-    description:
-      "A nourishing facial ritual with botanical oils and a relaxing pressure-point massage.",
-    durationMinutes: 50,
-    price: 99,
-    popular: true,
-  },
-
-  // Deep Recovery
-  {
-    id: "deep-recovery-90",
-    name: "Deep Recovery 90",
-    categoryId: "deep-recovery",
-    description:
-      "A 90-minute fusion of deep tissue, heat therapy and assisted stretch for full reset.",
+    id: "acupuncture-massage-90",
+    name: "Acupuncture & Massage — 90 min",
+    categoryId: "acupuncture",
+    description: "An extended acupuncture and massage treatment.",
     durationMinutes: 90,
-    price: 165,
-    featured: true,
+    price: 200,
   },
   {
-    id: "hot-stone-recovery",
-    name: "Hot Stone Recovery",
-    categoryId: "deep-recovery",
+    id: "cosmetic-acupuncture-initial",
+    name: "Cosmetic Acupuncture — Initial",
+    categoryId: "acupuncture",
     description:
-      "Smooth heated stones glide over the body to release deep-seated muscular tension.",
+      "Your first cosmetic acupuncture session to support natural radiance.",
+    durationMinutes: 60,
+    price: 150,
+  },
+  {
+    id: "cosmetic-acupuncture-followup",
+    name: "Cosmetic Acupuncture — Follow Up",
+    categoryId: "acupuncture",
+    description: "Ongoing cosmetic acupuncture to maintain your results.",
+    durationMinutes: 45,
+    price: 120,
+  },
+  {
+    id: "chinese-medicine-consultation",
+    name: "Chinese Medicine Consultation",
+    categoryId: "acupuncture",
+    description:
+      "Traditional Chinese medicine assessment with personalised wellness guidance.",
+    durationMinutes: 30,
+    price: 60,
+  },
+
+  // Additional Services
+  {
+    id: "ear-candling-head-massage",
+    name: "Ear Candling & Head Massage — 30 min",
+    categoryId: "additional-services",
+    description:
+      "Gentle ear candling paired with a relaxing head massage.",
+    durationMinutes: 30,
+    price: 55,
+  },
+  {
+    id: "fire-cupping",
+    name: "Traditional Fire Cupping",
+    categoryId: "additional-services",
+    description:
+      "Traditional suction cupping to boost circulation and ease tightness.",
+    durationMinutes: 20,
+    price: 50,
+  },
+  {
+    id: "fire-cupping-massage-45",
+    name: "Traditional Fire Cupping & Massage — 45 min",
+    categoryId: "additional-services",
+    description: "Fire cupping combined with a therapeutic massage.",
+    durationMinutes: 45,
+    price: 100,
+  },
+  {
+    id: "fire-cupping-massage-60",
+    name: "Traditional Fire Cupping & Massage — 60 min",
+    categoryId: "additional-services",
+    description: "An hour of fire cupping with massage for deeper relief.",
+    durationMinutes: 60,
+    price: 125,
+    popular: true,
+  },
+  {
+    id: "fire-cupping-massage-75",
+    name: "Traditional Fire Cupping & Massage — 75 min",
+    categoryId: "additional-services",
+    description: "An extended fire cupping and massage treatment.",
     durationMinutes: 75,
     price: 145,
   },
 
-  // Chinese Medicine Consultation
+  // Deluxe Customised
   {
-    id: "tcm-consultation",
-    name: "Chinese Medicine Consultation",
-    categoryId: "chinese-medicine",
+    id: "deluxe-90",
+    name: "Whole Body & Foot Massage — 90 min",
+    categoryId: "deluxe-customised",
     description:
-      "Traditional diagnosis with a personalised plan across treatment, lifestyle and herbs.",
-    durationMinutes: 60,
-    price: 105,
+      "Our signature whole body and foot massage, fully customised to you.",
+    durationMinutes: 90,
+    price: 150,
     featured: true,
   },
   {
-    id: "herbal-followup",
-    name: "Herbal Wellness Review",
-    categoryId: "chinese-medicine",
-    description:
-      "Follow-up review to fine-tune your herbal program and track your progress.",
-    durationMinutes: 30,
-    price: 65,
-  },
-
-  // Cupping & Additional Services
-  {
-    id: "cupping-therapy",
-    name: "Cupping Therapy",
-    categoryId: "cupping-additional",
-    description:
-      "Traditional suction cupping to boost circulation and ease muscular tightness.",
-    durationMinutes: 30,
-    price: 65,
+    id: "deluxe-120",
+    name: "Whole Body & Foot Massage — 120 min",
+    categoryId: "deluxe-customised",
+    description: "A two-hour whole body and foot massage experience.",
+    durationMinutes: 120,
+    price: 200,
     popular: true,
   },
   {
-    id: "gua-sha",
-    name: "Gua Sha Treatment",
-    categoryId: "cupping-additional",
-    description:
-      "Gentle scraping technique to release tension and stimulate healthy circulation.",
-    durationMinutes: 30,
-    price: 60,
+    id: "deluxe-150",
+    name: "Whole Body & Foot Massage — 150 min",
+    categoryId: "deluxe-customised",
+    description: "An indulgent 2.5-hour whole body and foot journey.",
+    durationMinutes: 150,
+    price: 245,
   },
   {
-    id: "heat-pack-addon",
-    name: "Heat Therapy Add-On",
-    categoryId: "cupping-additional",
-    description:
-      "Add soothing heat therapy to any treatment for enhanced muscle release.",
-    durationMinutes: 15,
-    price: 25,
+    id: "deluxe-180",
+    name: "Whole Body & Foot Massage — 180 min",
+    categoryId: "deluxe-customised",
+    description: "The complete three-hour deluxe restoration ritual.",
+    durationMinutes: 180,
+    price: 290,
   },
 ];
 
