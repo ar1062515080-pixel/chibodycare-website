@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand palette ---------------------------------------------------------- */
+  --color-cream: #faf6ee;
+  --color-cream-50: #fdfbf6;
+  --color-cream-100: #faf6ee;
+  --color-cream-200: #f3ecdd;
+
+  --color-sand-50: #f6efe2;
+  --color-sand-100: #ecdfc9;
+  --color-sand-200: #e0cdab;
+  --color-sand-300: #d4bb8e;
+  --color-sand-400: #c7a877;
+
+  --color-champagne: #e7d6b8;
+  --color-champagne-light: #f1e6cf;
+
+  --color-sage-50: #eef1e9;
+  --color-sage-100: #dbe2cf;
+  --color-sage-200: #c2cdaf;
+  --color-sage-300: #a4b389;
+  --color-sage-400: #8a9a6c;
+  --color-sage-500: #738457;
+  --color-sage-600: #5d6c46;
+  --color-sage-700: #4a5639;
+  --color-sage-800: #3a432d;
+
+  --color-gold: #b8924a;
+  --color-gold-light: #cba963;
+  --color-gold-dark: #94732f;
+
+  --color-brown-700: #4a3b2e;
+  --color-brown-800: #382c22;
+  --color-brown-900: #271e17;
+
+  /* Semantic tokens -------------------------------------------------------- */
+  --color-background: var(--color-cream-100);
+  --color-foreground: var(--color-brown-900);
+
+  /* Typography ------------------------------------------------------------- */
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-sans: var(--font-jost), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii & shadows -------------------------------------------------------- */
+  --radius-xl2: 1.5rem;
+}
+
+:root {
+  --background: var(--color-cream-100);
+  --foreground: var(--color-brown-900);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: var(--color-sage-200);
+    color: var(--color-brown-900);
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 80rem;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Subtle entrance animation -------------------------------------------------*/
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease both;
+}
+
+/* Custom scrollbar for horizontal step lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
