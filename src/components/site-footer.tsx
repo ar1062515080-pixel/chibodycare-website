@@ -125,7 +125,15 @@ export function SiteFooter() {
           <p>
             © {year} {business.name}. All rights reserved.
           </p>
-          <p>{business.abnLabel}</p>
+          <div className="flex items-center gap-4">
+            <p>{business.abnLabel}</p>
+            <Link
+              href="/admin/login"
+              className="transition-colors hover:text-gold-light"
+            >
+              Admin login
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

@@ -24,7 +24,8 @@ export async function updateSupabaseSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
-  if (!data?.claims && path.startsWith("/admin") && path !== "/admin/login") {
+  const publicAdminPaths = ["/admin/login", "/admin/register"];
+  if (!data?.claims && path.startsWith("/admin") && !publicAdminPaths.includes(path)) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     url.searchParams.set("next", path);
@@ -32,4 +33,3 @@ export async function updateSupabaseSession(request: NextRequest) {
   }
   return response;
 }
-

@@ -1,5 +1,6 @@
 import { signIn } from "@/app/admin/actions";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
+import Link from "next/link";
 
 export default async function AdminLogin({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
@@ -16,6 +17,12 @@ export default async function AdminLogin({ searchParams }: { searchParams: Promi
           <label className="block text-sm font-medium text-brown-800">Password<input name="password" type="password" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" /></label>
           <button disabled={!hasSupabaseEnv()} className="w-full rounded-full bg-sage-700 px-5 py-3 font-medium text-cream-50 disabled:opacity-40">Sign in</button>
         </form>
+        <p className="mt-6 text-center text-sm text-brown-700/70">
+          Need an account?{" "}
+          <Link href="/admin/register" className="font-medium text-sage-700 underline-offset-4 hover:underline">
+            Register
+          </Link>
+        </p>
       </div>
     </div>
   );

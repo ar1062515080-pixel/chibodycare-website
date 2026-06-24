@@ -26,6 +26,28 @@ export async function signIn(formData: FormData) {
   redirect("/admin");
 }
 
+export async function registerAdmin(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirm_password") ?? "");
+
+  if (!email || password.length < 8) {
+    redirect("/admin/register?error=Please%20use%20a%20valid%20email%20and%20a%20password%20of%20at%20least%208%20characters");
+  }
+  if (password !== confirmPassword) {
+    redirect("/admin/register?error=Passwords%20do%20not%20match");
+  }
+
+  const { error } = await supabase.auth.signUp({ email, password });
+  if (error) redirect(`/admin/register?error=${encodeURIComponent(error.message)}`);
+
+  // Registration creates an Auth user only. Access is granted separately by
+  // an existing administrator adding the user to public.admin_users.
+  await supabase.auth.signOut();
+  redirect("/admin/register?registered=true");
+}
+
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
@@ -118,4 +140,3 @@ export async function saveLocation(formData: FormData) {
   }
   revalidatePath("/admin/locations");
 }
-
