@@ -13,7 +13,6 @@ import {
   BookingSummaryMobile,
 } from "@/components/booking/booking-summary";
 import { isContactValid } from "@/components/booking/validation";
-import { generateBookingReference } from "@/lib/scheduling";
 
 const stepHints: Record<number, string> = {
   1: "Select at least one treatment to continue.",
@@ -24,6 +23,8 @@ const stepHints: Record<number, string> = {
 export function BookingFlow() {
   const { state, dispatch } = useBooking();
   const [showContactErrors, setShowContactErrors] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Scroll to the top of the flow whenever the step changes.
   useEffect(() => {
@@ -47,13 +48,42 @@ export function BookingFlow() {
     }
   })();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (state.step === 4) {
       if (!isContactValid(state.contact)) {
         setShowContactErrors(true);
         return;
       }
-      dispatch({ type: "CONFIRM", reference: generateBookingReference() });
+      const serviceId = state.serviceIds[0];
+      if (!serviceId || !state.startAt) return;
+      setSubmitting(true);
+      setSubmitError(null);
+      try {
+        const response = await fetch("/api/bookings", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            customerName: `${state.contact.firstName} ${state.contact.lastName}`,
+            customerPhone: state.contact.phone,
+            customerEmail: state.contact.email,
+            notes: state.contact.notes,
+            locationId: state.locationId,
+            serviceId,
+            therapistId: state.professionalId === "any" ? null : state.professionalId,
+            dailyRosterId: state.dailyRosterId,
+            startAt: state.startAt,
+          }),
+        });
+        const result = (await response.json()) as { reference?: string; error?: string };
+        if (!response.ok || !result.reference) {
+          throw new Error(result.error || "Unable to create booking.");
+        }
+        dispatch({ type: "CONFIRM", reference: result.reference });
+      } catch (error) {
+        setSubmitError((error as Error).message);
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
     if (canProceed) {
@@ -125,10 +155,14 @@ export function BookingFlow() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={!canProceed && state.step !== 4}
+                  disabled={submitting || (!canProceed && state.step !== 4)}
                   className="inline-flex items-center gap-2 rounded-full bg-sage-600 px-7 py-3 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-sage-700 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-sage-400 disabled:opacity-70"
                 >
-                  {state.step === 4 ? "Confirm booking" : "Continue"}
+                  {submitting
+                    ? "Saving booking…"
+                    : state.step === 4
+                      ? "Confirm booking"
+                      : "Continue"}
                   {state.step !== 4 ? (
                     <svg
                       viewBox="0 0 20 20"
@@ -150,6 +184,9 @@ export function BookingFlow() {
                   <p className="text-xs text-brown-700/60">
                     {stepHints[state.step]}
                   </p>
+                ) : null}
+                {submitError ? (
+                  <p className="max-w-xs text-right text-xs text-red-600">{submitError}</p>
                 ) : null}
               </div>
             </div>

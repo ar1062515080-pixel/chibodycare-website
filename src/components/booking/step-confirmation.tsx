@@ -11,7 +11,6 @@ import {
   formatPrice,
   formatTime,
 } from "@/lib/format";
-import { locations } from "@/lib/business";
 
 function dateFromKey(dateKey: string): Date {
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -19,11 +18,11 @@ function dateFromKey(dateKey: string): Date {
 }
 
 export function StepConfirmation() {
-  const { state, dispatch, derived } = useBooking();
+  const { state, dispatch, derived, bookingLocations } = useBooking();
   const { selectedServices, totalDuration, totalPrice, selectedProfessional } =
     derived;
 
-  const location = locations.find((l) => l.id === state.locationId);
+  const location = bookingLocations.find((l) => l.id === state.locationId);
   const professionalLabel =
     state.professionalId === ANY_PROFESSIONAL
       ? "Any available professional"
@@ -49,7 +48,7 @@ export function StepConfirmation() {
       </h2>
       <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-brown-700/80">
         Thank you, {state.contact.firstName}! Your appointment is reserved. A
-        confirmation would normally be sent to {state.contact.email}.
+        confirmation has been recorded for {state.contact.email}.
       </p>
 
       <div className="mx-auto mt-6 inline-flex flex-col items-center rounded-2xl border border-sage-200 bg-sage-50 px-6 py-4">
@@ -111,8 +110,7 @@ export function StepConfirmation() {
           </div>
         </dl>
         <p className="mt-4 rounded-xl bg-sand-50 px-3 py-2 text-xs text-brown-700/70">
-          Pay in studio after your treatment. This is a demo booking — no
-          payment has been taken.
+          Pay in studio after your treatment. No online payment has been taken.
         </p>
       </div>
 

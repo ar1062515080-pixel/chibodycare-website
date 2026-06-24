@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { BookingExperience } from "@/components/booking/booking-experience";
 import { getServiceById } from "@/lib/services";
+import { locations } from "@/lib/business";
+import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Book an Appointment",
@@ -28,6 +31,22 @@ export default async function BookPage({
 }) {
   const params = await searchParams;
   const initialServiceIds = parseServiceParam(params.service);
+  let bookingLocations = locations.map(({ id, name, phone }) => ({ id, name, phone }));
+  if (hasSupabaseEnv()) {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("locations")
+      .select("slug,name,phone")
+      .eq("active", true)
+      .order("name");
+    if (data?.length) {
+      bookingLocations = data.map((location) => ({
+        id: location.slug,
+        name: location.name,
+        phone: location.phone,
+      }));
+    }
+  }
 
   return (
     <div className="bg-sand-50/40">
@@ -46,7 +65,7 @@ export default async function BookPage({
         </div>
       </div>
 
-      <BookingExperience initialServiceIds={initialServiceIds} />
+      <BookingExperience initialServiceIds={initialServiceIds} initialLocations={bookingLocations} />
     </div>
   );
 }

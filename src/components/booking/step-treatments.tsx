@@ -16,8 +16,8 @@ export function StepTreatments() {
           Choose your treatments
         </h2>
         <p className="mt-1 text-sm text-brown-700/70">
-          Select one or more treatments. You can combine sessions for a longer
-          visit.
+          Select one treatment for this appointment. Additional treatments can
+          be booked separately.
         </p>
       </div>
 

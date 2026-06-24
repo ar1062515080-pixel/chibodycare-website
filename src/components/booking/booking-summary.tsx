@@ -2,7 +2,6 @@
 
 import { useBooking, ANY_PROFESSIONAL } from "@/components/booking/booking-context";
 import { formatDuration, formatPrice, formatTime } from "@/lib/format";
-import { locations } from "@/lib/business";
 import { cn } from "@/lib/cn";
 
 function formatDateKey(dateKey: string): string {
@@ -16,11 +15,11 @@ function formatDateKey(dateKey: string): string {
 }
 
 export function BookingSummaryContent() {
-  const { state, derived } = useBooking();
+  const { state, derived, bookingLocations } = useBooking();
   const { selectedServices, totalDuration, totalPrice, selectedProfessional } =
     derived;
 
-  const location = locations.find((l) => l.id === state.locationId);
+  const location = bookingLocations.find((l) => l.id === state.locationId);
 
   const professionalLabel =
     state.professionalId === ANY_PROFESSIONAL
