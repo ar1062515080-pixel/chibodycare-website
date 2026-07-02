@@ -176,7 +176,10 @@ $$;
 revoke all on function public.is_admin() from public;
 revoke all on function public.can_manage_location(uuid) from public;
 revoke all on function public.is_global_admin() from public;
-grant execute on function public.is_admin() to authenticated;
+-- Public active location/service policies call is_admin() as their privileged
+-- branch. Anonymous callers need execute permission so the helper can safely
+-- return false instead of causing a permission error.
+grant execute on function public.is_admin() to anon, authenticated;
 grant execute on function public.can_manage_location(uuid) to authenticated;
 grant execute on function public.is_global_admin() to authenticated;
 
