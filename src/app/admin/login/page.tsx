@@ -2,8 +2,8 @@ import { signIn } from "@/app/admin/actions";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import Link from "next/link";
 
-export default async function AdminLogin({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function AdminLogin({ searchParams }: { searchParams: Promise<{ error?: string; confirmed?: string }> }) {
+  const { error, confirmed } = await searchParams;
   return (
     <div className="flex min-h-[70vh] items-center justify-center bg-sand-50/50 px-5 py-16">
       <div className="w-full max-w-md rounded-3xl border border-sand-200 bg-cream-50 p-8 shadow-lg">
@@ -12,6 +12,7 @@ export default async function AdminLogin({ searchParams }: { searchParams: Promi
         <p className="mt-2 text-sm text-brown-700/70">Use the admin account created in Supabase Auth.</p>
         {!hasSupabaseEnv() ? <p className="mt-5 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">Supabase environment variables are not configured.</p> : null}
         {error ? <p className="mt-5 rounded-xl bg-red-50 p-3 text-sm text-red-700">{decodeURIComponent(error)}</p> : null}
+        {confirmed ? <p className="mt-5 rounded-xl bg-sage-50 p-3 text-sm text-sage-800">Email confirmed. You can now sign in. Dashboard access still requires administrator approval.</p> : null}
         <form action={signIn} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-brown-800">Email<input name="email" type="email" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" /></label>
           <label className="block text-sm font-medium text-brown-800">Password<input name="password" type="password" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" /></label>

@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { registerAdmin } from "@/app/admin/actions";
+import { registerAdmin, resendAdminConfirmation } from "@/app/admin/actions";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 
 export default async function AdminRegister({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; registered?: string }>;
+  searchParams: Promise<{ error?: string; registered?: string; resent?: string }>;
 }) {
-  const { error, registered } = await searchParams;
+  const { error, registered, resent } = await searchParams;
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center bg-sand-50/50 px-5 py-16">
@@ -29,8 +29,21 @@ export default async function AdminRegister({
           </p>
         ) : null}
         {registered ? (
-          <div className="mt-5 rounded-xl bg-sage-50 p-4 text-sm leading-relaxed text-sage-800">
-            Registration received. Please check your email if confirmation is enabled, then wait for an administrator to approve access.
+          <div className="mt-5 space-y-4">
+            <div className="rounded-xl bg-sage-50 p-4 text-sm leading-relaxed text-sage-800">
+              {resent
+                ? "A new confirmation email has been sent. Use only the newest link."
+                : "Registration received. Confirm your email using the newest message, then return to sign in. An administrator must still approve dashboard access."}
+            </div>
+            <form action={resendAdminConfirmation} className="space-y-3">
+              <label className="block text-sm font-medium text-brown-800">
+                Didn&apos;t receive a working link?
+                <input name="email" type="email" autoComplete="email" placeholder="Your registered email" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" />
+              </label>
+              <button className="w-full rounded-full border border-sage-700 px-5 py-3 font-medium text-sage-800">
+                Resend confirmation email
+              </button>
+            </form>
           </div>
         ) : (
           <form action={registerAdmin} className="mt-6 space-y-4">

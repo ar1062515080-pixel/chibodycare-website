@@ -48,6 +48,22 @@ export async function registerAdmin(formData: FormData) {
   redirect("/admin/register?registered=true");
 }
 
+export async function resendAdminConfirmation(formData: FormData) {
+  const supabase = await createSupabaseServerClient();
+  const email = String(formData.get("email") ?? "").trim();
+
+  if (!email) {
+    redirect("/admin/register?registered=true&error=Please%20enter%20your%20email%20address");
+  }
+
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+  if (error) {
+    redirect(`/admin/register?registered=true&error=${encodeURIComponent(error.message)}`);
+  }
+
+  redirect("/admin/register?registered=true&resent=true");
+}
+
 export async function signOut() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
