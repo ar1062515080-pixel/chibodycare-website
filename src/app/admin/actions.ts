@@ -1,8 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+async function getAuthRedirectUrl() {
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const protocol = requestHeaders.get("x-forwarded-proto") ?? "https";
+  return host ? `${protocol}://${host}/admin/login?confirmed=true` : undefined;
+}
 
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -39,7 +47,12 @@ export async function registerAdmin(formData: FormData) {
     redirect("/admin/register?error=Passwords%20do%20not%20match");
   }
 
-  const { error } = await supabase.auth.signUp({ email, password });
+  const emailRedirectTo = await getAuthRedirectUrl();
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: emailRedirectTo ? { emailRedirectTo } : undefined,
+  });
   if (error) redirect(`/admin/register?error=${encodeURIComponent(error.message)}`);
 
   // Registration creates an Auth user only. Access is granted separately by
@@ -56,7 +69,12 @@ export async function resendAdminConfirmation(formData: FormData) {
     redirect("/admin/register?registered=true&error=Please%20enter%20your%20email%20address");
   }
 
-  const { error } = await supabase.auth.resend({ type: "signup", email });
+  const emailRedirectTo = await getAuthRedirectUrl();
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: emailRedirectTo ? { emailRedirectTo } : undefined,
+  });
   if (error) {
     redirect(`/admin/register?registered=true&error=${encodeURIComponent(error.message)}`);
   }
