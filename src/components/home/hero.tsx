@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 import { business } from "@/lib/business";
 import { Stars } from "@/components/ui/stars";
 
@@ -52,9 +53,7 @@ export function Hero() {
         <div className="relative animate-fade-up">
           <div className="relative mx-auto aspect-[4/5] w-full max-w-md overflow-hidden rounded-[2.5rem] border border-sand-200 bg-gradient-to-br from-sage-200 via-sand-100 to-champagne shadow-xl">
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-              <span className="flex h-24 w-24 items-center justify-center rounded-full bg-cream-50/80 font-serif text-5xl text-sage-600 shadow-lg">
-                氣
-              </span>
+              <Image src="/images/chi-logo.png" alt="Chi Body Care official logo" width={1024} height={1024} priority className="h-52 w-52 object-contain drop-shadow-[0_18px_28px_rgba(96,72,32,0.22)] sm:h-64 sm:w-64" />
               <p className="font-serif text-2xl text-brown-900">
                 {business.tagline}
               </p>

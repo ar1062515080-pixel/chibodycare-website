@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { navLinks } from "@/lib/nav";
 import { business, locations, openingHours } from "@/lib/business";
 import { categories } from "@/lib/services";
@@ -13,14 +14,9 @@ export function SiteFooter() {
     <footer className="mt-24 border-t border-sand-200 bg-brown-900 text-cream-100">
       <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sage-500 text-cream-50">
-              <span className="font-serif text-xl leading-none">氣</span>
-            </span>
-            <span className="font-serif text-xl font-semibold">
-              {business.name}
-            </span>
-          </div>
+          <Link href="/" aria-label="Chi Body Care home" className="inline-flex rounded-full bg-cream-50/95 p-1 shadow-sm">
+            <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="h-20 w-20 object-contain" />
+          </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream-100/70">
             {business.shortDescription}
           </p>

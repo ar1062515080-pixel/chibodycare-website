@@ -1,27 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navLinks } from "@/lib/nav";
-import { business } from "@/lib/business";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 function Logo() {
   return (
-    <Link href="/" className="group flex items-center gap-2.5">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sage-600 text-cream-50 shadow-sm transition-transform group-hover:scale-105">
-        <span className="font-serif text-xl leading-none">氣</span>
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="font-serif text-lg font-semibold tracking-wide text-brown-900">
-          {business.name}
-        </span>
-        <span className="text-[0.62rem] uppercase tracking-[0.28em] text-gold-dark">
-          Wellness Studio
-        </span>
-      </span>
+    <Link href="/" className="group flex items-center" aria-label="Chi Body Care home">
+      <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} priority className="h-16 w-16 object-contain transition-transform duration-300 group-hover:scale-105 sm:h-[4.5rem] sm:w-[4.5rem]" />
     </Link>
   );
 }
