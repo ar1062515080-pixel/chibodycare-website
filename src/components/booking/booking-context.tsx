@@ -14,8 +14,8 @@ import {
   type Service,
 } from "@/lib/services";
 
-export const TOTAL_STEPS = 5;
-export type BookingStep = 1 | 2 | 3 | 4 | 5;
+export const TOTAL_STEPS = 6;
+export type BookingStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 export const ANY_PROFESSIONAL = "any";
 
@@ -45,6 +45,7 @@ export type BookingState = {
 
 type BookingAction =
   | { type: "TOGGLE_SERVICE"; serviceId: string }
+  | { type: "CLEAR_SERVICE" }
   | { type: "SET_PROFESSIONAL"; professionalId: string; professionalName?: string | null }
   | { type: "SET_LOCATION"; locationId: string }
   | { type: "SET_DATE"; dateKey: string }
@@ -78,7 +79,7 @@ function createInitialState(initialServiceIds: string[] = []): BookingState {
     serviceIds: valid,
     professionalId: null,
     professionalName: null,
-    locationId: "city-myer-centre",
+    locationId: "",
     dateKey: null,
     time: null,
     startAt: null,
@@ -107,19 +108,27 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       return {
         ...state,
         serviceIds,
-        professionalId: null,
-        professionalName: null,
         time: null,
         startAt: null,
         dailyRosterId: null,
       };
     }
 
+    case "CLEAR_SERVICE":
+      return {
+        ...state,
+        serviceIds: [],
+        time: null,
+        startAt: null,
+        dailyRosterId: null,
+      };
+
     case "SET_PROFESSIONAL":
       return {
         ...state,
         professionalId: action.professionalId,
         professionalName: action.professionalName ?? null,
+        serviceIds: [],
         time: null,
         startAt: null,
         dailyRosterId: null,
@@ -129,6 +138,8 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       return {
         ...state,
         locationId: action.locationId,
+        professionalId: null,
+        professionalName: null,
         dateKey: null,
         time: null,
         startAt: null,
@@ -150,8 +161,8 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
         time: action.time,
         startAt: action.startAt,
         dailyRosterId: action.dailyRosterId,
-        professionalId: action.professionalId,
-        professionalName: action.professionalName,
+        professionalId: state.professionalId === ANY_PROFESSIONAL ? ANY_PROFESSIONAL : action.professionalId,
+        professionalName: state.professionalId === ANY_PROFESSIONAL ? null : action.professionalName,
       };
 
     case "SET_CONTACT_FIELD":
@@ -176,7 +187,7 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       };
 
     case "CONFIRM":
-      return { ...state, reference: action.reference, step: 5 };
+      return { ...state, reference: action.reference, step: 6 };
 
     case "RESET":
       return createInitialState();

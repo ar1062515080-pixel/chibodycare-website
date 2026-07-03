@@ -4,11 +4,12 @@ import { cn } from "@/lib/cn";
 import { useBooking } from "@/components/booking/booking-context";
 
 const steps = [
-  { id: 1, label: "Treatments" },
+  { id: 1, label: "Studio" },
   { id: 2, label: "Professional" },
-  { id: 3, label: "Date & time" },
-  { id: 4, label: "Your details" },
-  { id: 5, label: "Confirmation" },
+  { id: 3, label: "Treatment" },
+  { id: 4, label: "Date & time" },
+  { id: 5, label: "Your details" },
+  { id: 6, label: "Confirmation" },
 ] as const;
 
 export function StepIndicator() {

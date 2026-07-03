@@ -8,7 +8,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Book an Appointment",
   description:
-    "Book your Chi Body Care treatment online. Choose your services, professional and a time that suits you.",
+    "Book your Chi Body Care treatment online. Choose a studio, professional, treatment and time.",
 };
 
 type SearchParams = Promise<{
@@ -59,8 +59,8 @@ export default async function BookPage({
             Book your treatment
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brown-700/80">
-            A few simple steps to your moment of calm. Select your treatments,
-            choose a professional and pick a time.
+            Choose your studio, preferred professional, treatment and a time
+            that suits you.
           </p>
         </div>
       </div>

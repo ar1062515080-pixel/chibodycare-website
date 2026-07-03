@@ -26,7 +26,7 @@ function upcomingDays(count = 14) {
 }
 
 export function StepDateTime() {
-  const { state, dispatch, derived, bookingLocations } = useBooking();
+  const { state, dispatch, derived } = useBooking();
   const [availability, setAvailability] = useState<AvailabilityResponse>({
     slots: [],
     hasRoster: false,
@@ -90,22 +90,6 @@ export function StepDateTime() {
           Live times come from each studio&apos;s daily therapist roster. Your
           visit will run for {formatDuration(derived.totalDuration)}.
         </p>
-      </div>
-
-      <div className="mb-6">
-        <label htmlFor="booking-location" className="mb-1.5 block text-sm font-medium text-brown-800">
-          Studio location
-        </label>
-        <select
-          id="booking-location"
-          value={state.locationId}
-          onChange={(event) => dispatch({ type: "SET_LOCATION", locationId: event.target.value })}
-          className="w-full rounded-2xl border border-sand-200 bg-cream-50 px-4 py-3 text-sm text-brown-900 outline-none focus:border-sage-400 focus:ring-2 focus:ring-sage-200 sm:max-w-sm"
-        >
-          {bookingLocations.map((location) => (
-            <option key={location.id} value={location.id}>{location.name}</option>
-          ))}
-        </select>
       </div>
 
       <p className="mb-2 text-sm font-medium text-brown-800">Select a day</p>
