@@ -148,6 +148,180 @@ export async function updateBookingStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export type BookingCalendarStatus = "unpaid" | "paid" | "no_show";
+
+export type UpdateBookingAppointmentInput = {
+  bookingId: string;
+  therapistId: string;
+  dailyRosterId: string;
+  startAt: string;
+  endAt: string;
+  calendarStatus: BookingCalendarStatus;
+};
+
+export type UpdateBookingAppointmentResult =
+  | {
+      ok: true;
+      booking: {
+        id: string;
+        therapistId: string;
+        dailyRosterId: string;
+        startAt: string;
+        endAt: string;
+        status: string;
+        calendarStatus: BookingCalendarStatus;
+      };
+    }
+  | { ok: false; error: string };
+
+export async function updateBookingAppointment(
+  input: UpdateBookingAppointmentInput,
+): Promise<UpdateBookingAppointmentResult> {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { ok: false, error: "Your admin session has expired. Please sign in again." };
+  }
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (adminError || !admin) {
+    return { ok: false, error: "You are not authorised to update appointments." };
+  }
+
+  const calendarStatuses: BookingCalendarStatus[] = ["unpaid", "paid", "no_show"];
+  if (
+    !input.bookingId ||
+    !input.therapistId ||
+    !input.dailyRosterId ||
+    !input.startAt ||
+    !input.endAt ||
+    !calendarStatuses.includes(input.calendarStatus)
+  ) {
+    return { ok: false, error: "The appointment update is incomplete." };
+  }
+
+  const startAt = new Date(input.startAt);
+  const endAt = new Date(input.endAt);
+  if (
+    Number.isNaN(startAt.getTime()) ||
+    Number.isNaN(endAt.getTime()) ||
+    endAt <= startAt
+  ) {
+    return { ok: false, error: "Please select a valid appointment time." };
+  }
+
+  const { data, error } = await supabase.rpc("admin_update_booking_appointment", {
+    p_booking_id: input.bookingId,
+    p_therapist_id: input.therapistId,
+    p_daily_roster_id: input.dailyRosterId,
+    p_start_at: startAt.toISOString(),
+    p_end_at: endAt.toISOString(),
+    p_calendar_status: input.calendarStatus,
+  });
+
+  if (error) {
+    return { ok: false, error: error.message || "Unable to update this appointment." };
+  }
+
+  const row = data?.[0] as {
+    booking_id: string;
+    therapist_id: string;
+    daily_roster_id: string;
+    start_at: string;
+    end_at: string;
+    status: string;
+    calendar_status: BookingCalendarStatus;
+  } | undefined;
+  if (!row) return { ok: false, error: "The appointment could not be updated." };
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+  return {
+    ok: true,
+    booking: {
+      id: row.booking_id,
+      therapistId: row.therapist_id,
+      dailyRosterId: row.daily_roster_id,
+      startAt: row.start_at,
+      endAt: row.end_at,
+      status: row.status,
+      calendarStatus: row.calendar_status,
+    },
+  };
+}
+
+export async function updateBookingCalendar(
+  formData: FormData,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const bookingId = String(formData.get("id") ?? "");
+  const therapistId = String(formData.get("therapist_id") ?? "");
+  const startAtValue = String(formData.get("start_at") ?? "");
+  const endAtValue = String(formData.get("end_at") ?? "");
+  const calendarStatus = String(formData.get("calendar_status") ?? "") as BookingCalendarStatus;
+  const validCalendarStatuses: BookingCalendarStatus[] = ["unpaid", "paid", "no_show"];
+
+  if (!bookingId || !therapistId || !startAtValue || !endAtValue || !validCalendarStatuses.includes(calendarStatus)) {
+    return { ok: false, error: "The appointment update is incomplete." };
+  }
+
+  const startAt = new Date(startAtValue);
+  const endAt = new Date(endAtValue);
+  if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime()) || endAt <= startAt) {
+    return { ok: false, error: "Please select a valid appointment time." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { ok: false, error: "Your admin session has expired. Please sign in again." };
+  }
+  const { data: admin } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!admin) return { ok: false, error: "You are not authorised to update appointments." };
+
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .select("location_id")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (bookingError || !booking) return { ok: false, error: "Booking not found or access denied." };
+
+  const appointmentDate = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Adelaide",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(startAt);
+  const { data: roster, error: rosterError } = await supabase
+    .from("daily_rosters")
+    .select("id")
+    .eq("location_id", booking.location_id)
+    .eq("therapist_id", therapistId)
+    .eq("date", appointmentDate)
+    .eq("active", true)
+    .maybeSingle();
+  if (rosterError || !roster) {
+    return { ok: false, error: "The selected therapist is not rostered at this store on this date." };
+  }
+
+  const result = await updateBookingAppointment({
+    bookingId,
+    therapistId,
+    dailyRosterId: roster.id,
+    startAt: startAt.toISOString(),
+    endAt: endAt.toISOString(),
+    calendarStatus,
+  });
+  return result.ok ? { ok: true } : result;
+}
+
 export async function saveLocation(formData: FormData) {
   const { supabase } = await requireAdmin();
   const locationId = String(formData.get("id"));
