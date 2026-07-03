@@ -82,7 +82,7 @@ as $$
         and tstzrange(b.start_at, b.end_at, '[)')
           && tstzrange(p_start_at, p_start_at + make_interval(mins => s.duration_minutes), '[)')
     )
-  order by therapist_display_name nulls last, s.slug;
+  order by t.public_display desc, t.display_name nulls last, s.slug;
 $$;
 
 revoke all on function public.get_open_start_times(uuid, date, integer) from public;
