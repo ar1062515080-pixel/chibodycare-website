@@ -14,8 +14,8 @@ import {
   type Service,
 } from "@/lib/services";
 
-export const TOTAL_STEPS = 6;
-export type BookingStep = 1 | 2 | 3 | 4 | 5 | 6;
+export const TOTAL_STEPS = 5;
+export type BookingStep = 1 | 2 | 3 | 4 | 5;
 
 export const ANY_PROFESSIONAL = "any";
 
@@ -197,7 +197,7 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       };
 
     case "CONFIRM":
-      return { ...state, reference: action.reference, step: 6 };
+      return { ...state, reference: action.reference, step: 5 };
 
     case "RESET":
       return createInitialState();

@@ -83,7 +83,7 @@ export function BookingSummaryContent() {
               </dd>
             </div>
           ) : null}
-          {state.step >= 3 ? (
+          {state.startAt ? (
             <div className="flex justify-between gap-3">
               <dt className="text-brown-700/60">Professional</dt>
               <dd className="text-right font-medium text-brown-900">

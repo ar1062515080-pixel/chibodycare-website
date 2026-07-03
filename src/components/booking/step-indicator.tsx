@@ -5,11 +5,10 @@ import { useBooking } from "@/components/booking/booking-context";
 
 const steps = [
   { id: 1, label: "Studio" },
-  { id: 2, label: "Date & time" },
-  { id: 3, label: "Professional" },
-  { id: 4, label: "Treatment" },
-  { id: 5, label: "Your details" },
-  { id: 6, label: "Confirmation" },
+  { id: 2, label: "Date, time & professional" },
+  { id: 3, label: "Treatment" },
+  { id: 4, label: "Your details" },
+  { id: 5, label: "Confirmation" },
 ] as const;
 
 export function StepIndicator() {
