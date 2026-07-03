@@ -49,6 +49,7 @@ type BookingAction =
   | { type: "SET_PROFESSIONAL"; professionalId: string; professionalName?: string | null }
   | { type: "SET_LOCATION"; locationId: string }
   | { type: "SET_DATE"; dateKey: string }
+  | { type: "SELECT_START_TIME"; time: string; startAt: string }
   | {
       type: "SELECT_SLOT";
       time: string;
@@ -108,8 +109,6 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       return {
         ...state,
         serviceIds,
-        time: null,
-        startAt: null,
         dailyRosterId: null,
       };
     }
@@ -118,8 +117,6 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       return {
         ...state,
         serviceIds: [],
-        time: null,
-        startAt: null,
         dailyRosterId: null,
       };
 
@@ -129,8 +126,6 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
         professionalId: action.professionalId,
         professionalName: action.professionalName ?? null,
         serviceIds: [],
-        time: null,
-        startAt: null,
         dailyRosterId: null,
       };
 
@@ -140,6 +135,7 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
         locationId: action.locationId,
         professionalId: null,
         professionalName: null,
+        serviceIds: [],
         dateKey: null,
         time: null,
         startAt: null,
@@ -150,8 +146,22 @@ function reducer(state: BookingState, action: BookingAction): BookingState {
       return {
         ...state,
         dateKey: action.dateKey,
+        professionalId: null,
+        professionalName: null,
+        serviceIds: [],
         time: null,
         startAt: null,
+        dailyRosterId: null,
+      };
+
+    case "SELECT_START_TIME":
+      return {
+        ...state,
+        time: action.time,
+        startAt: action.startAt,
+        professionalId: null,
+        professionalName: null,
+        serviceIds: [],
         dailyRosterId: null,
       };
 

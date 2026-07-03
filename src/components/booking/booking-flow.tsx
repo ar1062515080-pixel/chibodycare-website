@@ -14,9 +14,9 @@ import { isContactValid } from "@/components/booking/validation";
 
 const stepHints: Record<number, string> = {
   1: "Choose a studio to continue.",
-  2: "Choose a professional or select Any professional.",
-  3: "Choose a treatment category and duration.",
-  4: "Select a day and an available time.",
+  2: "Select a day and an available time.",
+  3: "Choose a professional or select Any professional.",
+  4: "Choose a treatment category and duration.",
 };
 
 export function BookingFlow() {
@@ -30,9 +30,9 @@ export function BookingFlow() {
   const canProceed = (() => {
     switch (state.step) {
       case 1: return Boolean(state.locationId);
-      case 2: return state.professionalId !== null;
-      case 3: return state.serviceIds.length > 0;
-      case 4: return Boolean(state.dateKey && state.time);
+      case 2: return Boolean(state.dateKey && state.time);
+      case 3: return state.professionalId !== null;
+      case 4: return state.serviceIds.length > 0;
       case 5: return isContactValid(state.contact);
       default: return true;
     }
@@ -72,9 +72,9 @@ export function BookingFlow() {
       <div>
         <div className="rounded-3xl border border-sand-100 bg-cream-50 p-6 shadow-sm sm:p-8">
           {state.step === 1 ? <StepLocation /> : null}
-          {state.step === 2 ? <StepProfessional /> : null}
-          {state.step === 3 ? <StepTreatments /> : null}
-          {state.step === 4 ? <StepDateTime /> : null}
+          {state.step === 2 ? <StepDateTime /> : null}
+          {state.step === 3 ? <StepProfessional /> : null}
+          {state.step === 4 ? <StepTreatments /> : null}
           {state.step === 5 ? <StepContact showErrors={showContactErrors} /> : null}
           {state.step === 6 ? <StepConfirmation /> : null}
         </div>
