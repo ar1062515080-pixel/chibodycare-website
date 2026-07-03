@@ -2,6 +2,7 @@ import Link from "next/link";
 import { registerAdmin, resendAdminConfirmation } from "@/app/admin/actions";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import { LanguageSwitcher } from "@/components/admin/language-switcher";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 
 export default async function AdminRegister({
@@ -44,9 +45,7 @@ export default async function AdminRegister({
                 {tr(locale, "Didn't receive a working link?", "没有收到有效链接？")}
                 <input name="email" type="email" autoComplete="email" placeholder={tr(locale, "Your registered email", "已注册的邮箱")} required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" />
               </label>
-              <button className="w-full rounded-full border border-sage-700 px-5 py-3 font-medium text-sage-800">
-                {tr(locale, "Resend confirmation email", "重新发送确认邮件")}
-              </button>
+              <SubmitButton pendingLabel={tr(locale, "Sending…", "正在发送…")} className="w-full rounded-full border border-sage-700 px-5 py-3 font-medium text-sage-800">{tr(locale, "Resend confirmation email", "重新发送确认邮件")}</SubmitButton>
             </form>
           </div>
         ) : (
@@ -63,9 +62,7 @@ export default async function AdminRegister({
               {tr(locale, "Confirm password", "确认密码")}
               <input name="confirm_password" type="password" autoComplete="new-password" minLength={8} required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" />
             </label>
-            <button disabled={!hasSupabaseEnv()} className="w-full rounded-full bg-sage-700 px-5 py-3 font-medium text-cream-50 disabled:opacity-40">
-              {tr(locale, "Register account", "注册账号")}
-            </button>
+            <SubmitButton disabled={!hasSupabaseEnv()} pendingLabel={tr(locale, "Registering…", "正在注册…")} className="w-full rounded-full bg-sage-700 px-5 py-3 font-medium text-cream-50 disabled:opacity-40">{tr(locale, "Register account", "注册账号")}</SubmitButton>
           </form>
         )}
 

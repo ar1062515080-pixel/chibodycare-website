@@ -2,6 +2,7 @@ import { signIn } from "@/app/admin/actions";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
 import Link from "next/link";
 import { LanguageSwitcher } from "@/components/admin/language-switcher";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 
 export default async function AdminLogin({ searchParams }: { searchParams: Promise<{ error?: string; confirmed?: string }> }) {
@@ -20,7 +21,7 @@ export default async function AdminLogin({ searchParams }: { searchParams: Promi
         <form action={signIn} className="mt-6 space-y-4">
           <label className="block text-sm font-medium text-brown-800">{tr(locale, "Email", "邮箱")}<input name="email" type="email" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" /></label>
           <label className="block text-sm font-medium text-brown-800">{tr(locale, "Password", "密码")}<input name="password" type="password" required className="mt-1.5 w-full rounded-xl border border-sand-200 bg-white px-4 py-3" /></label>
-          <button disabled={!hasSupabaseEnv()} className="w-full rounded-full bg-sage-700 px-5 py-3 font-medium text-cream-50 disabled:opacity-40">{tr(locale, "Sign in", "登录")}</button>
+          <SubmitButton disabled={!hasSupabaseEnv()} pendingLabel={tr(locale, "Signing in…", "正在登录…")} className="w-full rounded-full bg-sage-700 px-5 py-3 font-medium text-cream-50 disabled:opacity-40">{tr(locale, "Sign in", "登录")}</SubmitButton>
         </form>
         <p className="mt-6 text-center text-sm text-brown-700/70">
           {tr(locale, "Need an account?", "还没有账号？")}{" "}

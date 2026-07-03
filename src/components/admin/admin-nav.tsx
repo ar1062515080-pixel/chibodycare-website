@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { signOut } from "@/app/admin/actions";
 import { LanguageSwitcher } from "@/components/admin/language-switcher";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 
 export async function AdminNav() {
@@ -25,7 +26,7 @@ export async function AdminNav() {
         ))}
       </nav>
       <form action={signOut} className="px-3 pb-5 lg:mt-auto">
-        <button className="w-full rounded-xl border border-cream-100/20 px-4 py-2 text-sm hover:bg-cream-50/10">{tr(locale, "Sign out", "退出登录")}</button>
+        <SubmitButton pendingLabel={tr(locale, "Signing out…", "正在退出…")} className="w-full rounded-xl border border-cream-100/20 px-4 py-2 text-sm hover:bg-cream-50/10">{tr(locale, "Sign out", "退出登录")}</SubmitButton>
       </form>
     </aside>
   );

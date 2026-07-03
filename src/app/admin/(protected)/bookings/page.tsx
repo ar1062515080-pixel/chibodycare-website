@@ -1,6 +1,7 @@
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { updateBookingStatus } from "@/app/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 import { getAdminLocale, statusLabels, tr } from "@/lib/admin-i18n";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ date?: string; location?: string; status?: string }> }) {
   const params = await searchParams;
@@ -15,6 +16,25 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const { data: bookingRows } = await query;
   const bookings = bookingRows ?? [];
   const statuses = ["pending","confirmed","cancelled","completed","no_show"] as const;
-  const headers = locale === "zh" ? ["时间","客户","服务项目","门店","治疗师","状态"] : ["Time","Customer","Treatment","Studio","Therapist","Status"];
-  return <div><p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Bookings", "预约管理")}</p><h1 className="mt-2 font-serif text-4xl text-brown-900">{tr(locale, "All appointments", "全部预约")}</h1><form className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4"><input type="date" name="date" defaultValue={params.date} className="rounded-xl border border-sand-200 px-3 py-2" /><select name="location" defaultValue={params.location} className="rounded-xl border border-sand-200 px-3 py-2"><option value="">{tr(locale, "All locations", "全部门店")}</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select><select name="status" defaultValue={params.status} className="rounded-xl border border-sand-200 px-3 py-2"><option value="">{tr(locale, "All statuses", "全部状态")}</option>{statuses.map((status) => <option key={status} value={status}>{statusLabels[status][locale]}</option>)}</select><button className="rounded-full bg-brown-900 px-5 py-2 text-sm text-cream-50">{tr(locale, "Filter", "筛选")}</button></form><div className="mt-6 overflow-x-auto rounded-2xl border border-sand-200 bg-cream-50"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-sand-50 text-xs uppercase tracking-wide text-brown-700/70"><tr>{headers.map((h) => <th key={h} className="px-4 py-3">{h}</th>)}</tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id} className="border-t border-sand-100"><td className="px-4 py-4"><p className="font-medium">{new Date(booking.start_at).toLocaleString(locale === "zh" ? "zh-CN" : "en-AU")}</p><p className="text-xs text-brown-700/60">{booking.reference}</p></td><td className="px-4 py-4"><p>{booking.customer_name}</p><p className="text-xs text-brown-700/60">{booking.customer_phone}</p></td><td className="px-4 py-4">{(booking.services as { name?: string } | null)?.name}</td><td className="px-4 py-4">{(booking.locations as { name?: string } | null)?.name}</td><td className="px-4 py-4">{(booking.therapists as { display_name?: string } | null)?.display_name}</td><td className="px-4 py-4"><form action={updateBookingStatus} className="flex gap-2"><input type="hidden" name="id" value={booking.id} /><select name="status" defaultValue={booking.status} className="rounded-lg border border-sand-200 px-2 py-1">{statuses.map((status) => <option key={status} value={status}>{statusLabels[status][locale]}</option>)}</select><button className="rounded-lg bg-sage-700 px-3 py-1 text-xs text-white">{tr(locale, "Save", "保存")}</button></form></td></tr>)}</tbody></table>{!bookings.length ? <p className="p-8 text-center text-brown-700/60">{tr(locale, "No bookings match these filters.", "没有符合筛选条件的预约。")}</p> : null}</div></div>;
+  const tableHeaders = locale === "zh" ? ["时间","客户","服务项目","门店","治疗师","状态"] : ["Time","Customer","Treatment","Studio","Therapist","Status"];
+
+  return <div>
+    <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Bookings", "预约管理")}</p>
+    <h1 className="mt-2 font-serif text-4xl text-brown-900">{tr(locale, "All appointments", "全部预约")}</h1>
+    <form className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
+      <input type="date" name="date" defaultValue={params.date} className="rounded-xl border border-sand-200 px-3 py-2" />
+      <select name="location" defaultValue={params.location} className="rounded-xl border border-sand-200 px-3 py-2"><option value="">{tr(locale, "All locations", "全部门店")}</option>{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select>
+      <select name="status" defaultValue={params.status} className="rounded-xl border border-sand-200 px-3 py-2"><option value="">{tr(locale, "All statuses", "全部状态")}</option>{statuses.map((status) => <option key={status} value={status}>{statusLabels[status][locale]}</option>)}</select>
+      <SubmitButton pendingLabel={tr(locale, "Loading…", "正在加载…")} className="rounded-full bg-brown-900 px-5 py-2 text-sm text-cream-50">{tr(locale, "Filter", "筛选")}</SubmitButton>
+    </form>
+    <div className="mt-6 overflow-x-auto rounded-2xl border border-sand-200 bg-cream-50">
+      <table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-sand-50 text-xs uppercase tracking-wide text-brown-700/70"><tr>{tableHeaders.map((heading) => <th key={heading} className="px-4 py-3">{heading}</th>)}</tr></thead><tbody>{bookings.map((booking) => <tr key={booking.id} className="border-t border-sand-100">
+        <td className="px-4 py-4"><p className="font-medium">{new Date(booking.start_at).toLocaleString(locale === "zh" ? "zh-CN" : "en-AU")}</p><p className="text-xs text-brown-700/60">{booking.reference}</p></td>
+        <td className="px-4 py-4"><p>{booking.customer_name}</p><p className="text-xs text-brown-700/60">{booking.customer_phone}</p></td>
+        <td className="px-4 py-4">{(booking.services as { name?: string } | null)?.name}</td><td className="px-4 py-4">{(booking.locations as { name?: string } | null)?.name}</td><td className="px-4 py-4">{(booking.therapists as { display_name?: string } | null)?.display_name}</td>
+        <td className="px-4 py-4"><form action={updateBookingStatus} className="flex gap-2"><input type="hidden" name="id" value={booking.id} /><select name="status" defaultValue={booking.status} className="rounded-lg border border-sand-200 px-2 py-1">{statuses.map((status) => <option key={status} value={status}>{statusLabels[status][locale]}</option>)}</select><SubmitButton pendingLabel={tr(locale, "Saving…", "保存中…")} className="rounded-lg bg-sage-700 px-3 py-1 text-xs text-white">{tr(locale, "Save", "保存")}</SubmitButton></form></td>
+      </tr>)}</tbody></table>
+      {!bookings.length ? <p className="p-8 text-center text-brown-700/60">{tr(locale, "No bookings match these filters.", "没有符合筛选条件的预约。")}</p> : null}
+    </div>
+  </div>;
 }
