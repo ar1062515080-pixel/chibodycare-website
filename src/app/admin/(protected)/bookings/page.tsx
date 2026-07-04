@@ -22,6 +22,7 @@ type BookingRow = {
   end_at: string;
   status: string;
   calendar_status: CalendarStatus | null;
+  is_any_professional: boolean;
   therapist_id: string;
   services: { name?: string } | Array<{ name?: string }> | null;
 };
@@ -60,7 +61,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const locationId = params.location || locations[0]?.id || "";
   const [{ data: rosterRows }, { data: bookingRows }] = await Promise.all([
     supabase.from("daily_rosters").select("therapist_id,start_time,end_time,therapists(id,display_name)").eq("date", date).eq("location_id", locationId).eq("active", true).order("start_time"),
-    supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,therapist_id,services(name)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
+    supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,is_any_professional,therapist_id,services(name)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
   ]);
 
   const therapistMap = new Map<string, CalendarTherapist>();
@@ -74,7 +75,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
     .map((booking): CalendarBooking => {
       const service = relationOne(booking.services);
       const calendarStatus = booking.calendar_status ?? (booking.status === "no_show" ? "no_show" : "unpaid");
-      return { id: booking.id, reference: booking.reference, customerName: booking.customer_name, customerPhone: booking.customer_phone, serviceName: service?.name || tr(locale, "Treatment", "服务项目"), therapistId: booking.therapist_id, startAt: booking.start_at, endAt: booking.end_at, calendarStatus };
+      return { id: booking.id, reference: booking.reference, customerName: booking.customer_name, customerPhone: booking.customer_phone, serviceName: service?.name || tr(locale, "Treatment", "服务项目"), therapistId: booking.therapist_id, startAt: booking.start_at, endAt: booking.end_at, calendarStatus, isAnyProfessional: booking.is_any_professional };
     })
     .filter((booking) => !selectedStatus || booking.calendarStatus === selectedStatus);
 
