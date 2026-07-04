@@ -138,7 +138,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
 
   const shownBookings = bookings.map((booking) => drag?.id === booking.id ? drag.preview : booking);
 
-  function BookingCard({ booking }: { booking: CalendarBooking }) {
+  function renderBookingCard(booking: CalendarBooking) {
     const start = localMinutes(booking.startAt);
     const end = localMinutes(booking.endAt);
     const top = ((start - startMinute) / HALF_HOUR) * ROW_HEIGHT + 2;
@@ -147,6 +147,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     const originTherapist = isDragging ? drag.original.therapistId : booking.therapistId;
     const horizontalShift = (therapists.findIndex((therapist) => therapist.id === booking.therapistId) - therapists.findIndex((therapist) => therapist.id === originTherapist)) * 224;
     return <article
+      key={booking.id}
       className={`absolute inset-x-1.5 z-10 touch-none select-none rounded-lg border-l-4 p-2 shadow-sm transition-shadow ${cardClass(booking.calendarStatus)} ${isDragging ? "z-30 opacity-70 shadow-xl ring-2 ring-gold" : "hover:shadow-md"}`}
       style={{ top, height, transform: isDragging ? `translateX(${horizontalShift}px)` : undefined }}
       onPointerDown={(event) => beginPointer(event, booking, "move")}
@@ -178,7 +179,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
         <div className="sticky left-0 top-0 z-30 border-b border-r border-sand-200 bg-sand-50 p-3 text-xs font-medium uppercase tracking-wider text-brown-700/60">{t.time}</div>
         {therapists.map((therapist) => <div key={therapist.id} className="sticky top-0 z-20 border-b border-r border-sand-200 bg-sand-50 px-4 py-3"><p className="font-serif text-lg">{therapist.displayName}</p><p className="text-[10px] uppercase tracking-wider text-sage-700">{t.rostered}</p></div>)}
         <div className="sticky left-0 z-20 border-r border-sand-200 bg-cream-50">{slots.map((slot) => <div key={slot} className="border-b border-sand-100 px-3 pt-1 text-right text-[11px] text-brown-700/55" style={{ height: ROW_HEIGHT }}>{timeLabel(slot)}</div>)}</div>
-        {therapists.map((therapist) => <div key={therapist.id} data-therapist-id={therapist.id} className="relative border-r border-sand-200 bg-[linear-gradient(to_bottom,transparent_55px,#eee3cf_56px)] bg-[length:100%_56px]" style={{ height: slots.length * ROW_HEIGHT }}>{bookings.filter((booking) => booking.therapistId === therapist.id).map((booking) => <BookingCard key={booking.id} booking={shownBookings.find((shown) => shown.id === booking.id) ?? booking} />)}</div>)}
+        {therapists.map((therapist) => <div key={therapist.id} data-therapist-id={therapist.id} className="relative border-r border-sand-200 bg-[linear-gradient(to_bottom,transparent_55px,#eee3cf_56px)] bg-[length:100%_56px]" style={{ height: slots.length * ROW_HEIGHT }}>{bookings.filter((booking) => booking.therapistId === therapist.id).map((booking) => renderBookingCard(shownBookings.find((shown) => shown.id === booking.id) ?? booking))}</div>)}
       </div>
     </div>
 
