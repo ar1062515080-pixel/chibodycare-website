@@ -1,5 +1,5 @@
 import { BookingCalendar, type CalendarBooking, type CalendarStatus, type CalendarTherapist } from "@/components/admin/booking-calendar";
-import { updateBookingCalendar } from "@/app/admin/actions";
+import { cancelBookingCalendar, updateBookingCalendar } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -96,6 +96,6 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       <SubmitButton pendingLabel={tr(locale, "Loading…", "正在加载…")} className="self-end rounded-full bg-brown-900 px-5 py-2.5 text-sm text-cream-50">{tr(locale, "View calendar", "查看日历")}</SubmitButton>
     </form>
 
-    {therapists.length ? <div className="mt-6"><BookingCalendar therapists={therapists} initialBookings={bookings} startMinute={startMinute} endMinute={endMinute} locale={locale} updateAction={updateBookingCalendar} /></div> : <div className="mt-6 rounded-2xl border border-dashed border-sand-200 bg-cream-50 p-10 text-center"><p className="font-serif text-2xl">{tr(locale, "No therapists rostered", "当天没有按摩师排班")}</p><p className="mt-2 text-sm text-brown-700/60">{tr(locale, "Add therapists to the daily roster to build this calendar.", "请先在每日排班中添加按摩师，日历才会显示对应列。")}</p></div>}
+    {therapists.length ? <div className="mt-6"><BookingCalendar therapists={therapists} initialBookings={bookings} startMinute={startMinute} endMinute={endMinute} locale={locale} updateAction={updateBookingCalendar} cancelAction={cancelBookingCalendar} /></div> : <div className="mt-6 rounded-2xl border border-dashed border-sand-200 bg-cream-50 p-10 text-center"><p className="font-serif text-2xl">{tr(locale, "No therapists rostered", "当天没有按摩师排班")}</p><p className="mt-2 text-sm text-brown-700/60">{tr(locale, "Add therapists to the daily roster to build this calendar.", "请先在每日排班中添加按摩师，日历才会显示对应列。")}</p></div>}
   </div>;
 }

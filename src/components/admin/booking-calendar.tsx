@@ -34,8 +34,8 @@ const SNAP_MINUTES = 15;
 const MIN_DURATION = 15;
 const TIME_ZONE = "Australia/Adelaide";
 const labels = {
-  en: { time: "Time", rostered: "Rostered today", saving: "Saving…", save: "Save", therapist: "Therapist", start: "Start", end: "End", duration: "Duration (minutes)", update: "Update appointment", calendarStatus: "Status", selectedProfessional: "Requested therapist", locked: "Therapist locked", appointments: "appointments", none: "No appointments", unpaid: "Unpaid", paid: "Paid", no_show: "No-show", error: "Could not update this appointment." },
-  zh: { time: "时间", rostered: "今日上班", saving: "保存中…", save: "保存", therapist: "按摩师", start: "开始", end: "结束", duration: "时长（分钟）", update: "调整预约", calendarStatus: "状态", selectedProfessional: "指定按摩师", locked: "按摩师已锁定", appointments: "个预约", none: "暂无预约", unpaid: "未付款", paid: "已付款", no_show: "未到店", error: "无法更新此预约。" },
+  en: { time: "Time", rostered: "Rostered today", saving: "Saving…", save: "Save", cancelling: "Cancelling…", cancel: "Cancel appointment", confirmCancel: "Confirm cancellation", therapist: "Therapist", start: "Start", end: "End", duration: "Duration (minutes)", update: "Update appointment", calendarStatus: "Status", selectedProfessional: "Requested therapist", locked: "Therapist locked", appointments: "appointments", none: "No appointments", unpaid: "Unpaid", paid: "Paid", no_show: "No-show", error: "Could not update this appointment.", cancelError: "Could not cancel this appointment." },
+  zh: { time: "时间", rostered: "今日上班", saving: "保存中…", save: "保存", cancelling: "正在取消…", cancel: "取消预约", confirmCancel: "确认取消预约", therapist: "按摩师", start: "开始", end: "结束", duration: "时长（分钟）", update: "调整预约", calendarStatus: "状态", selectedProfessional: "指定按摩师", locked: "按摩师已锁定", appointments: "个预约", none: "暂无预约", unpaid: "未付款", paid: "已付款", no_show: "未到店", error: "无法更新此预约。", cancelError: "无法取消此预约。" },
 };
 
 function localMinutes(iso: string) {
@@ -65,7 +65,7 @@ function cardClass(status: CalendarStatus) {
   }[status];
 }
 
-export function BookingCalendar({ therapists, initialBookings, startMinute, endMinute, locale, updateAction }: { therapists: CalendarTherapist[]; initialBookings: CalendarBooking[]; startMinute: number; endMinute: number; locale: Locale; updateAction: (formData: FormData) => Promise<{ ok: true } | { ok: false; error: string }> }) {
+export function BookingCalendar({ therapists, initialBookings, startMinute, endMinute, locale, updateAction, cancelAction }: { therapists: CalendarTherapist[]; initialBookings: CalendarBooking[]; startMinute: number; endMinute: number; locale: Locale; updateAction: (formData: FormData) => Promise<{ ok: true } | { ok: false; error: string }>; cancelAction: (formData: FormData) => Promise<{ ok: true } | { ok: false; error: string }> }) {
   const t = labels[locale];
   const [bookings, setBookings] = useState(initialBookings);
   const [drag, setDrag] = useState<DragState | null>(null);
@@ -73,6 +73,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
   const [openId, setOpenId] = useState<string | null>(null);
   const [popoverDraft, setPopoverDraft] = useState<{ id: string; duration: string; status: CalendarStatus } | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const slots = useMemo(() => Array.from({ length: Math.max(1, (endMinute - startMinute) / HALF_HOUR) }, (_, index) => startMinute + index * HALF_HOUR), [startMinute, endMinute]);
 
@@ -97,6 +98,25 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     } catch (cause) {
       setBookings((current) => current.map((booking) => booking.id === previous.id ? previous : booking));
       setError(cause instanceof Error ? cause.message : t.error);
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  async function cancelBooking(booking: CalendarBooking) {
+    setSavingId(booking.id);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.set("id", booking.id);
+      const result = await cancelAction(formData);
+      if (!result.ok) throw new Error(result.error || t.cancelError);
+      setBookings((current) => current.filter((item) => item.id !== booking.id));
+      setOpenId(null);
+      setPopoverDraft(null);
+      setCancelConfirmId(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : t.cancelError);
     } finally {
       setSavingId(null);
     }
@@ -138,6 +158,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     else {
       const willOpen = openId !== current.id;
       setOpenId(willOpen ? current.id : null);
+      setCancelConfirmId(null);
       setPopoverDraft(willOpen ? { id: current.id, duration: String(localMinutes(current.original.endAt) - localMinutes(current.original.startAt)), status: current.original.calendarStatus } : null);
     }
   }
@@ -174,6 +195,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
         <label className="block text-[10px] uppercase tracking-wide text-brown-700/60">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={popoverDraft.duration} onChange={(event) => setPopoverDraft({ ...popoverDraft, duration: event.target.value })} onBlur={() => setPopoverDraft({ ...popoverDraft, duration: String(Math.max(15, Number(popoverDraft.duration) || 15)) })} className="mt-1 w-full touch-auto select-text rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label>
         <label className="mt-2 block text-[10px] uppercase tracking-wide text-brown-700/60">{t.calendarStatus}<select value={popoverDraft.status} onChange={(event) => setPopoverDraft({ ...popoverDraft, status: event.target.value as CalendarStatus })} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs">{(["unpaid", "paid", "no_show"] as const).map((status) => <option key={status} value={status}>{t[status]}</option>)}</select></label>
         <button type="button" disabled={savingId === booking.id} onClick={() => { const duration = Math.max(15, Number(popoverDraft.duration) || 15); void persist({ ...booking, endAt: shiftIso(booking.startAt, duration), calendarStatus: popoverDraft.status }, booking); setOpenId(null); setPopoverDraft(null); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{savingId === booking.id ? t.saving : t.save}</button>
+        <button type="button" disabled={savingId === booking.id} onClick={() => cancelConfirmId === booking.id ? void cancelBooking(booking) : setCancelConfirmId(booking.id)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${cancelConfirmId === booking.id ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700 hover:bg-red-50"}`}>{savingId === booking.id ? t.cancelling : cancelConfirmId === booking.id ? t.confirmCancel : t.cancel}</button>
       </div> : null}
     </article>;
   }
@@ -189,17 +211,18 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       </div>
     </div>
 
-    <div className="space-y-5 md:hidden">{therapists.map((therapist) => { const therapistBookings = bookings.filter((booking) => booking.therapistId === therapist.id); return <section key={therapist.id} className="overflow-hidden rounded-2xl border border-sand-200 bg-cream-50"><header className="border-b border-sand-200 bg-sand-50 px-4 py-3"><h2 className="font-serif text-xl">{therapist.displayName}</h2><p className="text-xs text-brown-700/55">{therapistBookings.length} {t.appointments}</p></header><div className="space-y-3 p-3">{therapistBookings.length ? therapistBookings.map((booking) => <MobileBooking key={booking.id} booking={booking} therapists={therapists} locale={locale} saving={savingId === booking.id} onSave={persist} />) : <p className="py-6 text-center text-sm text-brown-700/55">{t.none}</p>}</div></section>; })}</div>
+    <div className="space-y-5 md:hidden">{therapists.map((therapist) => { const therapistBookings = bookings.filter((booking) => booking.therapistId === therapist.id); return <section key={therapist.id} className="overflow-hidden rounded-2xl border border-sand-200 bg-cream-50"><header className="border-b border-sand-200 bg-sand-50 px-4 py-3"><h2 className="font-serif text-xl">{therapist.displayName}</h2><p className="text-xs text-brown-700/55">{therapistBookings.length} {t.appointments}</p></header><div className="space-y-3 p-3">{therapistBookings.length ? therapistBookings.map((booking) => <MobileBooking key={booking.id} booking={booking} therapists={therapists} locale={locale} saving={savingId === booking.id} onSave={persist} onCancel={cancelBooking} />) : <p className="py-6 text-center text-sm text-brown-700/55">{t.none}</p>}</div></section>; })}</div>
   </>;
 }
 
-function MobileBooking({ booking, therapists, locale, saving, onSave }: { booking: CalendarBooking; therapists: CalendarTherapist[]; locale: Locale; saving: boolean; onSave: (next: CalendarBooking, previous: CalendarBooking) => Promise<void> }) {
+function MobileBooking({ booking, therapists, locale, saving, onSave, onCancel }: { booking: CalendarBooking; therapists: CalendarTherapist[]; locale: Locale; saving: boolean; onSave: (next: CalendarBooking, previous: CalendarBooking) => Promise<void>; onCancel: (booking: CalendarBooking) => Promise<void> }) {
   const t = labels[locale];
   const [draft, setDraft] = useState(booking);
   const [durationInput, setDurationInput] = useState(String(localMinutes(booking.endAt) - localMinutes(booking.startAt)));
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const start = localMinutes(draft.startAt);
   const duration = localMinutes(draft.endAt) - localMinutes(draft.startAt);
   const end = start + duration;
   function changeStart(value: string) { const [hour, minute] = value.split(":").map(Number); const delta = hour * 60 + minute - start; setDraft({ ...draft, startAt: shiftIso(draft.startAt, delta), endAt: shiftIso(draft.endAt, delta) }); }
-  return <article className={`rounded-xl border-l-4 p-3 ${cardClass(booking.calendarStatus)}`}><div className="flex justify-between gap-3"><div><p className="font-medium">{booking.customerName}</p><p className="text-xs opacity-75">{serviceLabelWithActualDuration(booking.serviceName, draft.startAt, draft.endAt)}</p>{!booking.isAnyProfessional ? <p className="mt-1 text-[10px] font-medium opacity-60">🔒 {t.selectedProfessional}</p> : null}</div><p className="shrink-0 text-xs font-medium">{timeLabel(start)}–{timeLabel(end)}</p></div><div className="mt-3 grid grid-cols-2 gap-2"><label className="text-[10px] uppercase">{t.therapist}<select disabled={!booking.isAnyProfessional} value={draft.therapistId} onChange={(event) => setDraft({ ...draft, therapistId: event.target.value })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case disabled:cursor-not-allowed disabled:opacity-60">{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label><label className="text-[10px] uppercase">{t.calendarStatus}<select value={draft.calendarStatus} onChange={(event) => setDraft({ ...draft, calendarStatus: event.target.value as CalendarStatus })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case">{(["unpaid", "paid", "no_show"] as const).map((status) => <option key={status} value={status}>{t[status]}</option>)}</select></label><label className="text-[10px] uppercase">{t.start}<input type="time" step="900" value={timeLabel(start)} onChange={(event) => changeStart(event.target.value)} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label><label className="text-[10px] uppercase">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={durationInput} onChange={(event) => setDurationInput(event.target.value)} onBlur={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); setDurationInput(String(nextDuration)); setDraft({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }); }} className="mt-1 w-full select-text rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label></div><button type="button" disabled={saving} onClick={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); void onSave({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }, booking); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{saving ? t.saving : t.save}</button></article>;
+  return <article className={`rounded-xl border-l-4 p-3 ${cardClass(booking.calendarStatus)}`}><div className="flex justify-between gap-3"><div><p className="font-medium">{booking.customerName}</p><p className="text-xs opacity-75">{serviceLabelWithActualDuration(booking.serviceName, draft.startAt, draft.endAt)}</p>{!booking.isAnyProfessional ? <p className="mt-1 text-[10px] font-medium opacity-60">🔒 {t.selectedProfessional}</p> : null}</div><p className="shrink-0 text-xs font-medium">{timeLabel(start)}–{timeLabel(end)}</p></div><div className="mt-3 grid grid-cols-2 gap-2"><label className="text-[10px] uppercase">{t.therapist}<select disabled={!booking.isAnyProfessional} value={draft.therapistId} onChange={(event) => setDraft({ ...draft, therapistId: event.target.value })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case disabled:cursor-not-allowed disabled:opacity-60">{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label><label className="text-[10px] uppercase">{t.calendarStatus}<select value={draft.calendarStatus} onChange={(event) => setDraft({ ...draft, calendarStatus: event.target.value as CalendarStatus })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case">{(["unpaid", "paid", "no_show"] as const).map((status) => <option key={status} value={status}>{t[status]}</option>)}</select></label><label className="text-[10px] uppercase">{t.start}<input type="time" step="900" value={timeLabel(start)} onChange={(event) => changeStart(event.target.value)} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label><label className="text-[10px] uppercase">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={durationInput} onChange={(event) => setDurationInput(event.target.value)} onBlur={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); setDurationInput(String(nextDuration)); setDraft({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }); }} className="mt-1 w-full select-text rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label></div><button type="button" disabled={saving} onClick={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); void onSave({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }, booking); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{saving ? t.saving : t.save}</button><button type="button" disabled={saving} onClick={() => confirmCancel ? void onCancel(booking) : setConfirmCancel(true)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${confirmCancel ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700"}`}>{saving ? t.cancelling : confirmCancel ? t.confirmCancel : t.cancel}</button></article>;
 }

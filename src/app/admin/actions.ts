@@ -322,6 +322,45 @@ export async function updateBookingCalendar(
   return result.ok ? { ok: true } : result;
 }
 
+export async function cancelBookingCalendar(
+  formData: FormData,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const bookingId = String(formData.get("id") ?? "").trim();
+  if (!bookingId) return { ok: false, error: "Booking ID is required." };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { ok: false, error: "Your admin session has expired. Please sign in again." };
+  }
+
+  const { data: admin, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (adminError || !admin) {
+    return { ok: false, error: "You are not authorised to cancel appointments." };
+  }
+
+  // This is intentionally a soft cancellation. The existing bookings update
+  // policy applies can_manage_location to both the current and updated row,
+  // so store managers cannot cancel appointments outside their location.
+  const { data: booking, error } = await supabase
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("id", bookingId)
+    .select("id")
+    .maybeSingle();
+
+  if (error) return { ok: false, error: error.message || "Unable to cancel this appointment." };
+  if (!booking) return { ok: false, error: "Booking not found or access denied." };
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
 export async function saveLocation(formData: FormData) {
   const { supabase } = await requireAdmin();
   const locationId = String(formData.get("id"));
