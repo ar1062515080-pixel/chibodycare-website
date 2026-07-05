@@ -15,6 +15,13 @@ export type CalendarBooking = {
   endAt: string;
   calendarStatus: CalendarStatus;
   isAnyProfessional: boolean;
+  paymentAmounts: {
+    card: number;
+    insurance: number;
+    cash: number;
+    voucher: number;
+    waived: number;
+  };
 };
 
 type Locale = "en" | "zh";
@@ -34,9 +41,12 @@ const SNAP_MINUTES = 15;
 const MIN_DURATION = 15;
 const TIME_ZONE = "Australia/Adelaide";
 const labels = {
-  en: { time: "Time", rostered: "Rostered today", saving: "Saving…", save: "Save", cancelling: "Cancelling…", cancel: "Cancel appointment", confirmCancel: "Confirm cancellation", therapist: "Therapist", start: "Start", end: "End", duration: "Duration (minutes)", update: "Update appointment", calendarStatus: "Status", selectedProfessional: "Requested therapist", locked: "Therapist locked", appointments: "appointments", none: "No appointments", unpaid: "Unpaid", paid: "Paid", no_show: "No-show", error: "Could not update this appointment.", cancelError: "Could not cancel this appointment." },
-  zh: { time: "时间", rostered: "今日上班", saving: "保存中…", save: "保存", cancelling: "正在取消…", cancel: "取消预约", confirmCancel: "确认取消预约", therapist: "按摩师", start: "开始", end: "结束", duration: "时长（分钟）", update: "调整预约", calendarStatus: "状态", selectedProfessional: "指定按摩师", locked: "按摩师已锁定", appointments: "个预约", none: "暂无预约", unpaid: "未付款", paid: "已付款", no_show: "未到店", error: "无法更新此预约。", cancelError: "无法取消此预约。" },
+  en: { time: "Time", rostered: "Rostered today", saving: "Saving…", save: "Save", cancelling: "Cancelling…", cancel: "Cancel appointment", confirmCancel: "Confirm cancellation", therapist: "Therapist", start: "Start", end: "End", duration: "Duration (minutes)", update: "Update appointment", paymentMethods: "Payment methods", selectedProfessional: "Requested therapist", locked: "Therapist locked", appointments: "appointments", none: "No appointments", card: "Card", insurance: "Insurance", cash: "Cash", voucher: "Voucher", waived: "Waived", amountError: "Enter valid amounts only.", error: "Could not update this appointment.", cancelError: "Could not cancel this appointment." },
+  zh: { time: "时间", rostered: "今日上班", saving: "保存中…", save: "保存", cancelling: "正在取消…", cancel: "取消预约", confirmCancel: "确认取消预约", therapist: "按摩师", start: "开始", end: "结束", duration: "时长（分钟）", update: "调整预约", paymentMethods: "支付方式", selectedProfessional: "指定按摩师", locked: "按摩师已锁定", appointments: "个预约", none: "暂无预约", card: "刷卡", insurance: "保险", cash: "现金", voucher: "礼券", waived: "减免", amountError: "请输入有效金额。", error: "无法更新此预约。", cancelError: "无法取消此预约。" },
 };
+const paymentKeys = ["card", "insurance", "cash", "voucher", "waived"] as const;
+type PaymentKey = typeof paymentKeys[number];
+type PaymentDraft = Record<PaymentKey, string>;
 
 function localMinutes(iso: string) {
   const parts = new Intl.DateTimeFormat("en-AU", { timeZone: TIME_ZONE, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(iso));
@@ -71,7 +81,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [popoverDraft, setPopoverDraft] = useState<{ id: string; duration: string; status: CalendarStatus } | null>(null);
+  const [popoverDraft, setPopoverDraft] = useState<{ id: string; duration: string; payment: PaymentDraft } | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -93,6 +103,11 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       formData.set("start_at", next.startAt);
       formData.set("end_at", next.endAt);
       formData.set("calendar_status", next.calendarStatus);
+      formData.set("card_amount", String(next.paymentAmounts.card));
+      formData.set("insurance_amount", String(next.paymentAmounts.insurance));
+      formData.set("cash_amount", String(next.paymentAmounts.cash));
+      formData.set("voucher_amount", String(next.paymentAmounts.voucher));
+      formData.set("waived_amount", String(next.paymentAmounts.waived));
       const result = await updateAction(formData);
       if (!result.ok) throw new Error(result.error || t.error);
     } catch (cause) {
@@ -101,6 +116,28 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     } finally {
       setSavingId(null);
     }
+  }
+
+  function toPaymentDraft(booking: CalendarBooking): PaymentDraft {
+    return {
+      card: String(booking.paymentAmounts.card || 0),
+      insurance: String(booking.paymentAmounts.insurance || 0),
+      cash: String(booking.paymentAmounts.cash || 0),
+      voucher: String(booking.paymentAmounts.voucher || 0),
+      waived: String(booking.paymentAmounts.waived || 0),
+    };
+  }
+
+  function parsePaymentDraft(payment: PaymentDraft) {
+    const entries = paymentKeys.map((key) => {
+      const raw = payment[key].trim();
+      const value = raw ? Number(raw) : 0;
+      return [key, value] as const;
+    });
+    if (entries.some(([, value]) => !Number.isFinite(value) || value < 0)) {
+      return null;
+    }
+    return Object.fromEntries(entries) as CalendarBooking["paymentAmounts"];
   }
 
   async function cancelBooking(booking: CalendarBooking) {
@@ -159,7 +196,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       const willOpen = openId !== current.id;
       setOpenId(willOpen ? current.id : null);
       setCancelConfirmId(null);
-      setPopoverDraft(willOpen ? { id: current.id, duration: String(localMinutes(current.original.endAt) - localMinutes(current.original.startAt)), status: current.original.calendarStatus } : null);
+      setPopoverDraft(willOpen ? { id: current.id, duration: String(localMinutes(current.original.endAt) - localMinutes(current.original.startAt)), payment: toPaymentDraft(current.original) } : null);
     }
   }
 
@@ -171,11 +208,12 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     const top = ((start - startMinute) / HALF_HOUR) * ROW_HEIGHT + 2;
     const height = Math.max(42, ((end - start) / HALF_HOUR) * ROW_HEIGHT - 4);
     const isDragging = drag?.id === booking.id;
+    const isOpen = openId === booking.id && popoverDraft?.id === booking.id;
     const originTherapist = isDragging ? drag.original.therapistId : booking.therapistId;
     const horizontalShift = (therapists.findIndex((therapist) => therapist.id === booking.therapistId) - therapists.findIndex((therapist) => therapist.id === originTherapist)) * 224;
     return <article
       key={booking.id}
-      className={`absolute inset-x-1.5 z-10 touch-none select-none rounded-lg border-l-4 p-2 shadow-sm transition-shadow ${cardClass(booking.calendarStatus)} ${isDragging ? "z-30 opacity-70 shadow-xl ring-2 ring-gold" : "hover:shadow-md"}`}
+      className={`absolute inset-x-1.5 touch-none select-none rounded-lg border-l-4 p-2 shadow-sm transition-shadow ${cardClass(booking.calendarStatus)} ${isDragging ? "z-40 opacity-70 shadow-xl ring-2 ring-gold" : isOpen ? "z-30 shadow-lg" : "z-10 hover:shadow-md"}`}
       style={{ top, height, transform: isDragging ? `translateX(${horizontalShift}px)` : undefined }}
       onPointerDown={(event) => beginPointer(event, booking, "move")}
       onPointerMove={movePointer}
@@ -189,12 +227,17 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       {savingId === booking.id ? <span className="absolute inset-0 grid place-items-center rounded-lg bg-white/70 text-xs font-medium">{t.saving}</span> : null}
       <button type="button" aria-label={t.end} className="absolute inset-x-1 bottom-0 z-20 h-4 cursor-ns-resize touch-none rounded-md border-b-2 border-current/40 bg-current/10" onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); beginPointer(event, booking, "resize"); }} onPointerMove={(event) => { event.stopPropagation(); movePointer(event); }} onPointerUp={(event) => { event.stopPropagation(); endPointer(event); }} onPointerCancel={() => setDragState(null)} />
       {isDragging ? <span className="absolute -top-7 left-1 rounded bg-brown-900 px-2 py-1 text-[10px] text-white shadow">{timeLabel(start)}–{timeLabel(end)}</span> : null}
-      {openId === booking.id && popoverDraft?.id === booking.id && !drag ? <div className="absolute left-2 top-12 z-40 w-56 touch-auto select-text rounded-xl border border-sand-200 bg-white p-3 text-brown-900 shadow-xl" onPointerDown={(event) => event.stopPropagation()} onPointerMove={(event) => event.stopPropagation()} onPointerUp={(event) => event.stopPropagation()} onPointerCancel={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
+      {isOpen && !drag ? <div className="absolute left-2 top-12 z-[80] w-72 touch-auto select-text rounded-2xl border border-sand-200 bg-white p-4 text-brown-900 shadow-2xl ring-1 ring-brown-900/5" onPointerDown={(event) => event.stopPropagation()} onPointerMove={(event) => event.stopPropagation()} onPointerUp={(event) => event.stopPropagation()} onPointerCancel={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
         <p className="mb-2 text-xs font-semibold">{t.update}</p>
         {!booking.isAnyProfessional ? <p className="mb-2 rounded-md bg-sand-50 px-2 py-1.5 text-[10px] text-brown-700">🔒 {t.locked}</p> : null}
         <label className="block text-[10px] uppercase tracking-wide text-brown-700/60">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={popoverDraft.duration} onChange={(event) => setPopoverDraft({ ...popoverDraft, duration: event.target.value })} onBlur={() => setPopoverDraft({ ...popoverDraft, duration: String(Math.max(15, Number(popoverDraft.duration) || 15)) })} className="mt-1 w-full touch-auto select-text rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label>
-        <label className="mt-2 block text-[10px] uppercase tracking-wide text-brown-700/60">{t.calendarStatus}<select value={popoverDraft.status} onChange={(event) => setPopoverDraft({ ...popoverDraft, status: event.target.value as CalendarStatus })} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs">{(["unpaid", "paid", "no_show"] as const).map((status) => <option key={status} value={status}>{t[status]}</option>)}</select></label>
-        <button type="button" disabled={savingId === booking.id} onClick={() => { const duration = Math.max(15, Number(popoverDraft.duration) || 15); void persist({ ...booking, endAt: shiftIso(booking.startAt, duration), calendarStatus: popoverDraft.status }, booking); setOpenId(null); setPopoverDraft(null); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{savingId === booking.id ? t.saving : t.save}</button>
+        <div className="mt-3">
+          <p className="text-[10px] uppercase tracking-wide text-brown-700/60">{t.paymentMethods}</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {paymentKeys.map((key) => <label key={key} className={`block text-[10px] uppercase tracking-wide text-brown-700/60 ${key === "waived" ? "col-span-2" : ""}`}>{t[key]}<input type="number" inputMode="decimal" min={0} step={0.01} value={popoverDraft.payment[key]} onChange={(event) => setPopoverDraft({ ...popoverDraft, payment: { ...popoverDraft.payment, [key]: event.target.value } })} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label>)}
+          </div>
+        </div>
+        <button type="button" disabled={savingId === booking.id} onClick={() => { const duration = Math.max(15, Number(popoverDraft.duration) || 15); const paymentAmounts = parsePaymentDraft(popoverDraft.payment); if (!paymentAmounts) { setError(t.amountError); return; } void persist({ ...booking, endAt: shiftIso(booking.startAt, duration), paymentAmounts }, booking); setOpenId(null); setPopoverDraft(null); }} className="mt-4 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{savingId === booking.id ? t.saving : t.save}</button>
         <button type="button" disabled={savingId === booking.id} onClick={() => cancelConfirmId === booking.id ? void cancelBooking(booking) : setCancelConfirmId(booking.id)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${cancelConfirmId === booking.id ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700 hover:bg-red-50"}`}>{savingId === booking.id ? t.cancelling : cancelConfirmId === booking.id ? t.confirmCancel : t.cancel}</button>
       </div> : null}
     </article>;
@@ -219,10 +262,17 @@ function MobileBooking({ booking, therapists, locale, saving, onSave, onCancel }
   const t = labels[locale];
   const [draft, setDraft] = useState(booking);
   const [durationInput, setDurationInput] = useState(String(localMinutes(booking.endAt) - localMinutes(booking.startAt)));
+  const [paymentDraft, setPaymentDraft] = useState<PaymentDraft>({
+    card: String(booking.paymentAmounts.card || 0),
+    insurance: String(booking.paymentAmounts.insurance || 0),
+    cash: String(booking.paymentAmounts.cash || 0),
+    voucher: String(booking.paymentAmounts.voucher || 0),
+    waived: String(booking.paymentAmounts.waived || 0),
+  });
   const [confirmCancel, setConfirmCancel] = useState(false);
   const start = localMinutes(draft.startAt);
   const duration = localMinutes(draft.endAt) - localMinutes(draft.startAt);
   const end = start + duration;
   function changeStart(value: string) { const [hour, minute] = value.split(":").map(Number); const delta = hour * 60 + minute - start; setDraft({ ...draft, startAt: shiftIso(draft.startAt, delta), endAt: shiftIso(draft.endAt, delta) }); }
-  return <article className={`rounded-xl border-l-4 p-3 ${cardClass(booking.calendarStatus)}`}><div className="flex justify-between gap-3"><div><p className="font-medium">{booking.customerName}</p><p className="text-xs opacity-75">{serviceLabelWithActualDuration(booking.serviceName, draft.startAt, draft.endAt)}</p>{!booking.isAnyProfessional ? <p className="mt-1 text-[10px] font-medium opacity-60">🔒 {t.selectedProfessional}</p> : null}</div><p className="shrink-0 text-xs font-medium">{timeLabel(start)}–{timeLabel(end)}</p></div><div className="mt-3 grid grid-cols-2 gap-2"><label className="text-[10px] uppercase">{t.therapist}<select disabled={!booking.isAnyProfessional} value={draft.therapistId} onChange={(event) => setDraft({ ...draft, therapistId: event.target.value })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case disabled:cursor-not-allowed disabled:opacity-60">{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label><label className="text-[10px] uppercase">{t.calendarStatus}<select value={draft.calendarStatus} onChange={(event) => setDraft({ ...draft, calendarStatus: event.target.value as CalendarStatus })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case">{(["unpaid", "paid", "no_show"] as const).map((status) => <option key={status} value={status}>{t[status]}</option>)}</select></label><label className="text-[10px] uppercase">{t.start}<input type="time" step="900" value={timeLabel(start)} onChange={(event) => changeStart(event.target.value)} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label><label className="text-[10px] uppercase">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={durationInput} onChange={(event) => setDurationInput(event.target.value)} onBlur={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); setDurationInput(String(nextDuration)); setDraft({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }); }} className="mt-1 w-full select-text rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label></div><button type="button" disabled={saving} onClick={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); void onSave({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }, booking); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{saving ? t.saving : t.save}</button><button type="button" disabled={saving} onClick={() => confirmCancel ? void onCancel(booking) : setConfirmCancel(true)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${confirmCancel ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700"}`}>{saving ? t.cancelling : confirmCancel ? t.confirmCancel : t.cancel}</button></article>;
+  return <article className={`rounded-xl border-l-4 p-3 ${cardClass(booking.calendarStatus)}`}><div className="flex justify-between gap-3"><div><p className="font-medium">{booking.customerName}</p><p className="text-xs opacity-75">{serviceLabelWithActualDuration(booking.serviceName, draft.startAt, draft.endAt)}</p>{!booking.isAnyProfessional ? <p className="mt-1 text-[10px] font-medium opacity-60">🔒 {t.selectedProfessional}</p> : null}</div><p className="shrink-0 text-xs font-medium">{timeLabel(start)}–{timeLabel(end)}</p></div><div className="mt-3 grid grid-cols-2 gap-2"><label className="text-[10px] uppercase">{t.therapist}<select disabled={!booking.isAnyProfessional} value={draft.therapistId} onChange={(event) => setDraft({ ...draft, therapistId: event.target.value })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case disabled:cursor-not-allowed disabled:opacity-60">{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label><label className="text-[10px] uppercase">{t.start}<input type="time" step="900" value={timeLabel(start)} onChange={(event) => changeStart(event.target.value)} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label><label className="text-[10px] uppercase">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={durationInput} onChange={(event) => setDurationInput(event.target.value)} onBlur={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); setDurationInput(String(nextDuration)); setDraft({ ...draft, endAt: shiftIso(draft.startAt, nextDuration) }); }} className="mt-1 w-full select-text rounded-lg border border-current/20 bg-white/80 p-2 text-xs" /></label></div><div className="mt-3 grid grid-cols-2 gap-2">{paymentKeys.map((key) => <label key={key} className={`text-[10px] uppercase ${key === "waived" ? "col-span-2" : ""}`}>{t[key]}<input type="number" inputMode="decimal" min={0} step={0.01} value={paymentDraft[key]} onChange={(event) => setPaymentDraft({ ...paymentDraft, [key]: event.target.value })} className="mt-1 w-full rounded-lg border border-current/20 bg-white/80 p-2 text-xs normal-case" /></label>)}</div><button type="button" disabled={saving} onClick={() => { const nextDuration = Math.max(15, Number(durationInput) || 15); const paymentAmounts = Object.fromEntries(paymentKeys.map((key) => [key, paymentDraft[key].trim() ? Number(paymentDraft[key]) : 0])) as CalendarBooking["paymentAmounts"]; if (Object.values(paymentAmounts).some((value) => !Number.isFinite(value) || value < 0)) { return; } void onSave({ ...draft, endAt: shiftIso(draft.startAt, nextDuration), paymentAmounts }, booking); }} className="mt-3 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{saving ? t.saving : t.save}</button><button type="button" disabled={saving} onClick={() => confirmCancel ? void onCancel(booking) : setConfirmCancel(true)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${confirmCancel ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700"}`}>{saving ? t.cancelling : confirmCancel ? t.confirmCancel : t.cancel}</button></article>;
 }

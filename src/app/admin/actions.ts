@@ -149,6 +149,13 @@ export async function updateBookingStatus(formData: FormData) {
 }
 
 export type BookingCalendarStatus = "unpaid" | "paid" | "no_show";
+export type BookingPaymentAmounts = {
+  cardAmount: number;
+  insuranceAmount: number;
+  cashAmount: number;
+  voucherAmount: number;
+  waivedAmount: number;
+};
 
 export type UpdateBookingAppointmentInput = {
   bookingId: string;
@@ -157,6 +164,7 @@ export type UpdateBookingAppointmentInput = {
   startAt: string;
   endAt: string;
   calendarStatus: BookingCalendarStatus;
+  paymentAmounts: BookingPaymentAmounts;
 };
 
 export type UpdateBookingAppointmentResult =
@@ -204,6 +212,10 @@ export async function updateBookingAppointment(
     return { ok: false, error: "The appointment update is incomplete." };
   }
 
+  if (Object.values(input.paymentAmounts).some((value) => value < 0 || !Number.isFinite(value))) {
+    return { ok: false, error: "Please enter valid payment amounts." };
+  }
+
   const startAt = new Date(input.startAt);
   const endAt = new Date(input.endAt);
   if (
@@ -238,6 +250,21 @@ export async function updateBookingAppointment(
   } | undefined;
   if (!row) return { ok: false, error: "The appointment could not be updated." };
 
+  const { error: paymentError } = await supabase
+    .from("bookings")
+    .update({
+      card_amount_cents: input.paymentAmounts.cardAmount,
+      insurance_amount_cents: input.paymentAmounts.insuranceAmount,
+      cash_amount_cents: input.paymentAmounts.cashAmount,
+      voucher_amount_cents: input.paymentAmounts.voucherAmount,
+      waived_amount_cents: input.paymentAmounts.waivedAmount,
+    })
+    .eq("id", input.bookingId);
+
+  if (paymentError) {
+    return { ok: false, error: paymentError.message || "Unable to save payment amounts." };
+  }
+
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
   return {
@@ -263,9 +290,26 @@ export async function updateBookingCalendar(
   const endAtValue = String(formData.get("end_at") ?? "");
   const calendarStatus = String(formData.get("calendar_status") ?? "") as BookingCalendarStatus;
   const validCalendarStatuses: BookingCalendarStatus[] = ["unpaid", "paid", "no_show"];
+  const parseAmount = (name: string) => {
+    const value = String(formData.get(name) ?? "").trim();
+    if (!value) return 0;
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric < 0) return Number.NaN;
+    return Math.round(numeric * 100);
+  };
+  const paymentAmounts = {
+    cardAmount: parseAmount("card_amount"),
+    insuranceAmount: parseAmount("insurance_amount"),
+    cashAmount: parseAmount("cash_amount"),
+    voucherAmount: parseAmount("voucher_amount"),
+    waivedAmount: parseAmount("waived_amount"),
+  };
 
   if (!bookingId || !therapistId || !startAtValue || !endAtValue || !validCalendarStatuses.includes(calendarStatus)) {
     return { ok: false, error: "The appointment update is incomplete." };
+  }
+  if (Object.values(paymentAmounts).some(Number.isNaN)) {
+    return { ok: false, error: "Please enter valid payment amounts." };
   }
 
   const startAt = new Date(startAtValue);
@@ -318,6 +362,7 @@ export async function updateBookingCalendar(
     startAt: startAt.toISOString(),
     endAt: endAt.toISOString(),
     calendarStatus,
+    paymentAmounts,
   });
   return result.ok ? { ok: true } : result;
 }
@@ -359,6 +404,73 @@ export async function cancelBookingCalendar(
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
   return { ok: true };
+}
+
+function moneyToCents(value: FormDataEntryValue | null) {
+  const amount = Number(String(value ?? "0").trim() || "0");
+  return Number.isFinite(amount) && amount >= 0 ? Math.round(amount * 100) : null;
+}
+
+export async function saveDailyStoreRecord(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const locationId = String(formData.get("location_id") ?? "");
+  const recordDate = String(formData.get("record_date") ?? "");
+  const openingCash = moneyToCents(formData.get("opening_cash"));
+  const promotion = moneyToCents(formData.get("promotion"));
+  const otherIncome = moneyToCents(formData.get("other_income"));
+  const cashExpense = moneyToCents(formData.get("cash_expense"));
+  if (!locationId || !/^\d{4}-\d{2}-\d{2}$/.test(recordDate) || [openingCash, promotion, otherIncome, cashExpense].some((value) => value === null)) {
+    throw new Error("Please enter valid daily record amounts.");
+  }
+  const { error } = await supabase.from("daily_store_records").upsert({
+    location_id: locationId,
+    record_date: recordDate,
+    opening_cash_cents: openingCash,
+    promotion_cents: promotion,
+    other_income_cents: otherIncome,
+    cash_expense_cents: cashExpense,
+    notes: String(formData.get("notes") ?? "").trim(),
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "location_id,record_date" });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/bookings");
+}
+
+export async function saveGiftVoucherSale(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const locationId = String(formData.get("location_id") ?? "");
+  const saleDate = String(formData.get("sale_date") ?? "");
+  const voucherNumber = String(formData.get("voucher_number") ?? "").trim();
+  const faceValue = moneyToCents(formData.get("face_value"));
+  const card = moneyToCents(formData.get("card_amount"));
+  const hicaps = moneyToCents(formData.get("hicaps_amount"));
+  const cash = moneyToCents(formData.get("cash_amount"));
+  const voucher = moneyToCents(formData.get("voucher_amount"));
+  const waived = moneyToCents(formData.get("waived_amount"));
+  if (!locationId || !/^\d{4}-\d{2}-\d{2}$/.test(saleDate) || !voucherNumber || faceValue === null || faceValue <= 0 || [card, hicaps, cash, voucher, waived].some((value) => value === null)) {
+    throw new Error("Please enter a voucher number, value and valid payment amounts.");
+  }
+  const { error } = await supabase.from("gift_voucher_sales").insert({
+    location_id: locationId,
+    sale_date: saleDate,
+    voucher_number: voucherNumber,
+    face_value_cents: faceValue,
+    card_amount_cents: card,
+    hicaps_amount_cents: hicaps,
+    cash_amount_cents: cash,
+    voucher_amount_cents: voucher,
+    waived_amount_cents: waived,
+    notes: String(formData.get("voucher_notes") ?? "").trim(),
+  });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/bookings");
+}
+
+export async function removeGiftVoucherSale(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("gift_voucher_sales").delete().eq("id", String(formData.get("id") ?? ""));
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/bookings");
 }
 
 export async function saveLocation(formData: FormData) {
