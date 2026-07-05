@@ -121,7 +121,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       </form>
     </section>
 
-    <section className="mt-8 rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm md:p-7">
+    {false ? <section className="mt-8 rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm md:p-7">
       <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Gift vouchers", "礼券")}</p><h2 className="mt-1 font-serif text-3xl">{tr(locale, "Voucher sales register", "礼券销售记录")}</h2>
       <div className="mt-5 overflow-hidden rounded-2xl border border-sand-200">
         <div className="flex items-center justify-between bg-sand-50 px-4 py-3"><h3 className="font-serif text-xl">{tr(locale, "Voucher usage", "礼券使用记录")}</h3><span className="text-xs text-brown-700/55">{tr(locale, "Used in appointment payments", "预约结算中使用")}</span></div>
@@ -137,6 +137,6 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <SubmitButton pendingLabel={tr(locale, "Adding…", "添加中…")} className="self-end rounded-xl bg-brown-900 px-5 py-2.5 text-sm text-white">{tr(locale, "Add voucher sale", "添加礼券销售")}</SubmitButton>
       </form>
       <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead className="text-left text-xs text-brown-700/55"><tr><th className="py-3">{tr(locale, "Number", "编号")}</th><th className="text-right">{tr(locale, "Value", "金额")}</th><th className="text-right">{tr(locale, "Card", "刷卡")}</th><th className="text-right">HICAPS</th><th className="text-right">{tr(locale, "Cash", "现金")}</th><th className="text-right">{tr(locale, "Voucher", "礼券")}</th><th className="text-right">{tr(locale, "Free", "免费")}</th><th /></tr></thead><tbody>{vouchers.length ? vouchers.map((voucher) => <tr key={voucher.id} className="border-t border-sand-100"><td className="py-3 font-medium">{voucher.voucher_number}<span className="ml-2 text-xs font-normal text-brown-700/45">{voucher.notes}</span></td><td className="text-right">{formatMoney(voucher.face_value_cents)}</td><td className="text-right">{formatMoney(voucher.card_amount_cents)}</td><td className="text-right">{formatMoney(voucher.hicaps_amount_cents)}</td><td className="text-right">{formatMoney(voucher.cash_amount_cents)}</td><td className="text-right">{formatMoney(voucher.voucher_amount_cents)}</td><td className="text-right">{formatMoney(voucher.waived_amount_cents)}</td><td className="pl-3 text-right"><form action={removeGiftVoucherSale}><input type="hidden" name="id" value={voucher.id} /><SubmitButton pendingLabel={tr(locale, "Removing…", "删除中…")} className="text-xs text-rose-700">{tr(locale, "Remove", "删除")}</SubmitButton></form></td></tr>) : <tr><td colSpan={8} className="py-8 text-center text-brown-700/45">{tr(locale, "No voucher sales recorded", "当天没有礼券销售记录")}</td></tr>}</tbody></table></div>
-    </section>
+    </section> : null}
   </div>;
 }

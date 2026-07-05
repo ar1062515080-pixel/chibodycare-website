@@ -480,6 +480,33 @@ export async function removeGiftVoucherSale(formData: FormData) {
   revalidatePath("/admin/bookings");
 }
 
+export async function redeemGiftVoucher(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const locationId = String(formData.get("location_id") ?? "");
+  const voucherNumber = String(formData.get("voucher_number") ?? "").trim();
+  const amount = moneyToCents(formData.get("amount"));
+  const usedDate = String(formData.get("used_date") ?? "");
+  if (!locationId || !voucherNumber || amount === null || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(usedDate)) {
+    throw new Error("Please enter a valid voucher number and amount.");
+  }
+  const { data: sale, error: saleError } = await supabase.from("gift_voucher_sales").select("id,face_value_cents").eq("voucher_number", voucherNumber).maybeSingle();
+  if (saleError || !sale) throw new Error("Gift voucher not found.");
+  const { data: redemptions, error: redemptionError } = await supabase.from("gift_voucher_redemptions").select("amount_cents").eq("gift_voucher_sale_id", sale.id);
+  if (redemptionError) throw new Error(redemptionError.message);
+  const balance = sale.face_value_cents - (redemptions ?? []).reduce((sum, row) => sum + row.amount_cents, 0);
+  if (amount > balance) throw new Error("The amount exceeds the voucher balance.");
+  const { error } = await supabase.from("gift_voucher_redemptions").insert({ gift_voucher_sale_id: sale.id, location_id: locationId, amount_cents: amount, used_date: usedDate });
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/vouchers");
+}
+
+export async function removeGiftVoucherRedemption(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("gift_voucher_redemptions").delete().eq("id", String(formData.get("id") ?? ""));
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/vouchers");
+}
+
 export async function saveLocation(formData: FormData) {
   const { supabase } = await requireAdmin();
   const locationId = String(formData.get("id"));

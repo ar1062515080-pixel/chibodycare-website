@@ -10,6 +10,7 @@ export async function AdminNav() {
     [tr(locale, "Overview", "总览"), "/admin"],
     [tr(locale, "Daily roster", "每日排班"), "/admin/roster"],
     [tr(locale, "Bookings", "预约管理"), "/admin/bookings"],
+    [tr(locale, "Voucher sales / use", "礼券售卖/使用"), "/admin/vouchers"],
     [tr(locale, "Therapists", "治疗师"), "/admin/therapists"],
     [tr(locale, "Locations", "门店管理"), "/admin/locations"],
   ] as const;
