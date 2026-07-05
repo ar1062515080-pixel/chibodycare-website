@@ -165,6 +165,7 @@ export type UpdateBookingAppointmentInput = {
   endAt: string;
   calendarStatus: BookingCalendarStatus;
   paymentAmounts: BookingPaymentAmounts;
+  voucherNumber: string;
 };
 
 export type UpdateBookingAppointmentResult =
@@ -258,6 +259,7 @@ export async function updateBookingAppointment(
       cash_amount_cents: input.paymentAmounts.cashAmount,
       voucher_amount_cents: input.paymentAmounts.voucherAmount,
       waived_amount_cents: input.paymentAmounts.waivedAmount,
+      voucher_number: input.paymentAmounts.voucherAmount > 0 ? input.voucherNumber.trim() : "",
     })
     .eq("id", input.bookingId);
 
@@ -304,12 +306,16 @@ export async function updateBookingCalendar(
     voucherAmount: parseAmount("voucher_amount"),
     waivedAmount: parseAmount("waived_amount"),
   };
+  const voucherNumber = String(formData.get("voucher_number") ?? "").trim();
 
   if (!bookingId || !therapistId || !startAtValue || !endAtValue || !validCalendarStatuses.includes(calendarStatus)) {
     return { ok: false, error: "The appointment update is incomplete." };
   }
   if (Object.values(paymentAmounts).some(Number.isNaN)) {
     return { ok: false, error: "Please enter valid payment amounts." };
+  }
+  if (paymentAmounts.voucherAmount > 0 && !voucherNumber) {
+    return { ok: false, error: "Please enter the gift voucher number." };
   }
 
   const startAt = new Date(startAtValue);
@@ -363,6 +369,7 @@ export async function updateBookingCalendar(
     endAt: endAt.toISOString(),
     calendarStatus,
     paymentAmounts,
+    voucherNumber,
   });
   return result.ok ? { ok: true } : result;
 }

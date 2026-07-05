@@ -12,7 +12,7 @@ type BookingRow = {
   id: string; reference: string; customer_name: string; customer_phone: string; start_at: string; end_at: string;
   status: string; calendar_status: CalendarStatus | null; is_any_professional: boolean; therapist_id: string;
   card_amount_cents: number | null; insurance_amount_cents: number | null; cash_amount_cents: number | null;
-  voucher_amount_cents: number | null; waived_amount_cents: number | null;
+  voucher_amount_cents: number | null; waived_amount_cents: number | null; voucher_number: string;
   services: ServiceRelation | ServiceRelation[] | null;
 };
 type DailyRecord = { opening_cash_cents: number; promotion_cents: number; other_income_cents: number; cash_expense_cents: number; notes: string };
@@ -36,7 +36,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const locationId = params.location || locations[0]?.id || "";
   const [rostersResult, bookingsResult, dailyResult, vouchersResult] = await Promise.all([
     supabase.from("daily_rosters").select("therapist_id,start_time,end_time,therapists(id,display_name)").eq("date", date).eq("location_id", locationId).eq("active", true).order("start_time"),
-    supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,is_any_professional,therapist_id,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,services(name,category,price_cents)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
+    supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,is_any_professional,therapist_id,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,voucher_number,services(name,category,price_cents)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
     supabase.from("daily_store_records").select("opening_cash_cents,promotion_cents,other_income_cents,cash_expense_cents,notes").eq("location_id", locationId).eq("record_date", date).maybeSingle(),
     supabase.from("gift_voucher_sales").select("id,voucher_number,face_value_cents,card_amount_cents,hicaps_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,notes").eq("location_id", locationId).eq("sale_date", date).order("created_at"),
   ]);
@@ -60,6 +60,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       calendarStatus: booking.calendar_status ?? (booking.status === "no_show" ? "no_show" : "unpaid"),
       isAnyProfessional: booking.is_any_professional,
       paymentAmounts: { card: cents(booking.card_amount_cents) / 100, insurance: cents(booking.insurance_amount_cents) / 100, cash: cents(booking.cash_amount_cents) / 100, voucher: cents(booking.voucher_amount_cents) / 100, waived: cents(booking.waived_amount_cents) / 100 },
+      voucherNumber: booking.voucher_number,
     };
   });
 
@@ -122,6 +123,11 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
 
     <section className="mt-8 rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm md:p-7">
       <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Gift vouchers", "礼券")}</p><h2 className="mt-1 font-serif text-3xl">{tr(locale, "Voucher sales register", "礼券销售记录")}</h2>
+      <div className="mt-5 overflow-hidden rounded-2xl border border-sand-200">
+        <div className="flex items-center justify-between bg-sand-50 px-4 py-3"><h3 className="font-serif text-xl">{tr(locale, "Voucher usage", "礼券使用记录")}</h3><span className="text-xs text-brown-700/55">{tr(locale, "Used in appointment payments", "预约结算中使用")}</span></div>
+        <table className="w-full text-sm"><thead className="text-left text-xs text-brown-700/55"><tr><th className="px-4 py-3">{tr(locale, "Voucher number", "礼券编号")}</th><th className="px-4 py-3">{tr(locale, "Customer", "客户")}</th><th className="px-4 py-3">{tr(locale, "Booking reference", "预约编号")}</th><th className="px-4 py-3 text-right">{tr(locale, "Amount used", "使用金额")}</th></tr></thead><tbody>{rawBookings.filter((booking) => cents(booking.voucher_amount_cents) > 0).length ? rawBookings.filter((booking) => cents(booking.voucher_amount_cents) > 0).map((booking) => <tr key={booking.id} className="border-t border-sand-100"><td className="px-4 py-3 font-medium">{booking.voucher_number || tr(locale, "Number not recorded", "未登记编号")}</td><td className="px-4 py-3">{booking.customer_name}</td><td className="px-4 py-3 text-brown-700/60">{booking.reference}</td><td className="px-4 py-3 text-right font-medium">{formatMoney(cents(booking.voucher_amount_cents))}</td></tr>) : <tr><td colSpan={4} className="px-4 py-8 text-center text-brown-700/45">{tr(locale, "No vouchers used today", "当天没有礼券使用记录")}</td></tr>}</tbody></table>
+      </div>
+      <h3 className="mt-6 font-serif text-xl">{tr(locale, "New voucher sales", "新礼券销售")}</h3>
       <form action={saveGiftVoucherSale} className="mt-5 grid gap-3 rounded-2xl bg-sand-50 p-4 sm:grid-cols-2 xl:grid-cols-4">
         <input type="hidden" name="location_id" value={locationId} /><input type="hidden" name="sale_date" value={date} />
         <label className="text-xs font-medium">{tr(locale, "Voucher number", "礼券编号")}<input required name="voucher_number" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
