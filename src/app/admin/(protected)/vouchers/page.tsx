@@ -27,7 +27,6 @@ export default async function VouchersPage({ searchParams }: { searchParams: Pro
   const usedBySale = new Map<string, number>();
   for (const row of redemptions) usedBySale.set(row.gift_voucher_sale_id, (usedBySale.get(row.gift_voucher_sale_id) ?? 0) + row.amount_cents);
   const saleById = new Map(sales.map((sale) => [sale.id, sale]));
-  const activeVouchers = sales.filter((sale) => sale.face_value_cents - (usedBySale.get(sale.id) ?? 0) > 0);
 
   return <div>
     <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Gift vouchers", "礼券管理")}</p>
@@ -48,7 +47,7 @@ export default async function VouchersPage({ searchParams }: { searchParams: Pro
         <div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.16em] text-gold-dark">02 · {tr(locale, "Redeem", "使用")}</p><h2 className="mt-1 font-serif text-2xl">{tr(locale, "Use a gift voucher", "礼券使用")}</h2></div><span className="rounded-full bg-gold/10 px-3 py-1 text-xs text-gold-dark">{tr(locale, "Used today", "默认当天使用")}</span></div>
         <form action={redeemGiftVoucher} className="mt-5 space-y-4">
           <input type="hidden" name="location_id" value={locationId} /><input type="hidden" name="used_date" value={today} />
-          <label className="block text-xs font-medium">{tr(locale, "Voucher number and balance", "礼券编号及余额")}<select required name="voucher_number" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm"><option value="">{tr(locale, "Select a voucher", "选择礼券")}</option>{activeVouchers.map((sale) => <option key={sale.id} value={sale.voucher_number}>{sale.voucher_number} · {tr(locale, "Balance", "余额")} {money(sale.face_value_cents - (usedBySale.get(sale.id) ?? 0))}</option>)}</select></label>
+          <label className="block text-xs font-medium">{tr(locale, "Voucher number", "礼券编号")}<input required name="voucher_number" placeholder={tr(locale, "Enter voucher number", "输入礼券编号")} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm" /></label>
           <label className="block text-xs font-medium">{tr(locale, "Amount to use", "本次使用金额")}<input required type="number" min="0.01" step="0.01" name="amount" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm" /></label>
           <div className="rounded-xl bg-sand-50 px-4 py-3 text-xs text-brown-700/65">{tr(locale, "The remaining balance is calculated automatically after saving.", "保存后系统会自动计算并显示礼券余额。")}</div>
           <SubmitButton pendingLabel={tr(locale, "Saving…", "保存中…")} className="w-full rounded-xl bg-gold-dark px-5 py-3 text-sm text-white">{tr(locale, "Record voucher use", "记录礼券使用")}</SubmitButton>

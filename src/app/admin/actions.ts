@@ -138,6 +138,21 @@ export async function removeRoster(formData: FormData) {
   revalidatePath("/admin/roster");
 }
 
+export async function updateRosterHours(formData: FormData): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { supabase } = await requireAdmin();
+  const rosterId = String(formData.get("roster_id") ?? "");
+  const startTime = String(formData.get("start_time") ?? "");
+  const endTime = String(formData.get("end_time") ?? "");
+  if (!rosterId || !/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime) || startTime >= endTime) {
+    return { ok: false, error: "Please enter valid arrival and departure times." };
+  }
+  const { error } = await supabase.from("daily_rosters").update({ start_time: startTime, end_time: endTime }).eq("id", rosterId);
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/roster");
+  return { ok: true };
+}
+
 export async function updateBookingStatus(formData: FormData) {
   const { supabase } = await requireAdmin();
   const status = String(formData.get("status"));

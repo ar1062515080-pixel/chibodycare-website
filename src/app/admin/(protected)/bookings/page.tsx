@@ -35,7 +35,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const locations = locationRows ?? [];
   const locationId = params.location || locations[0]?.id || "";
   const [rostersResult, bookingsResult, dailyResult, vouchersResult] = await Promise.all([
-    supabase.from("daily_rosters").select("therapist_id,start_time,end_time,therapists(id,display_name)").eq("date", date).eq("location_id", locationId).eq("active", true).order("start_time"),
+    supabase.from("daily_rosters").select("id,therapist_id,start_time,end_time,therapists(id,display_name)").eq("date", date).eq("location_id", locationId).eq("active", true).order("start_time"),
     supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,is_any_professional,therapist_id,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,voucher_number,services(name,category,price_cents)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
     supabase.from("daily_store_records").select("opening_cash_cents,promotion_cents,other_income_cents,cash_expense_cents,notes").eq("location_id", locationId).eq("record_date", date).maybeSingle(),
     supabase.from("gift_voucher_sales").select("id,voucher_number,face_value_cents,card_amount_cents,hicaps_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,notes").eq("location_id", locationId).eq("sale_date", date).order("created_at"),
@@ -48,7 +48,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const therapistMap = new Map<string, CalendarTherapist>();
   for (const roster of rosterRows) {
     const therapist = relationOne(roster.therapists as unknown as TherapistRelation | TherapistRelation[] | null);
-    if (therapist) therapistMap.set(therapist.id, { id: therapist.id, displayName: therapist.display_name });
+    if (therapist) therapistMap.set(therapist.id, { id: therapist.id, displayName: therapist.display_name, rosterId: String(roster.id), startTime: String(roster.start_time).slice(0, 5), endTime: String(roster.end_time).slice(0, 5) });
   }
   const therapists = [...therapistMap.values()];
   const bookings = rawBookings.map((booking): CalendarBooking => {
