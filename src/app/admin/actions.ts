@@ -91,18 +91,24 @@ export async function signOut() {
 export async function saveTherapist(formData: FormData) {
   const { supabase } = await requireAdmin();
   const id = String(formData.get("id") ?? "");
+  const locationId = String(formData.get("location_id") ?? "");
   const payload = {
     display_name: String(formData.get("display_name") ?? "").trim(),
     internal_name: String(formData.get("internal_name") ?? "").trim(),
     active: formData.get("active") === "on",
     public_display: formData.get("public_display") === "on",
   };
-  if (!payload.display_name || !payload.internal_name) return;
+  if (!payload.display_name || !payload.internal_name || !locationId) return;
   const result = id
     ? await supabase.from("therapists").update(payload).eq("id", id).select("id").single()
     : await supabase.from("therapists").insert(payload).select("id").single();
   if (result.error || !result.data) throw new Error(result.error?.message || "Unable to save therapist");
   const therapistId = result.data.id;
+  const { error: locationError } = await supabase.from("location_therapists").upsert(
+    { location_id: locationId, therapist_id: therapistId },
+    { onConflict: "location_id,therapist_id" },
+  );
+  if (locationError) throw new Error(locationError.message);
   await supabase.from("therapist_services").delete().eq("therapist_id", therapistId);
   const serviceIds = formData.getAll("service_ids").map(String);
   if (serviceIds.length) {

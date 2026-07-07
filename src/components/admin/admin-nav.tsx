@@ -7,7 +7,6 @@ import { getAdminLocale, tr } from "@/lib/admin-i18n";
 export async function AdminNav() {
   const locale = await getAdminLocale();
   const links = [
-    [tr(locale, "Overview", "总览"), "/admin"],
     [tr(locale, "Daily roster", "每日排班"), "/admin/roster"],
     [tr(locale, "Bookings", "预约管理"), "/admin/bookings"],
     [tr(locale, "Voucher sales / use", "礼券售卖/使用"), "/admin/vouchers"],
