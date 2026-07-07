@@ -60,9 +60,8 @@ export default function HomePage() {
 
       <section className="bg-cream-50 py-20 sm:py-28">
         <div className="container-page grid gap-12 lg:grid-cols-2 lg:items-center">
-          <div className="relative mx-auto w-full max-w-xl pb-14 pr-8 sm:pb-20 sm:pr-16">
+          <div className="relative mx-auto w-full max-w-xl">
             <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem]"><Image src="/images/studio/treatment-room.webp" alt="Private Chi Body Care treatment room" fill sizes="(min-width:1024px) 50vw, 100vw" className="object-cover" /></div>
-            <div className="absolute bottom-0 right-0 aspect-square w-2/5 overflow-hidden rounded-[1.5rem] border-[8px] border-cream-50 shadow-xl"><Image src="/images/studio/botanical-wall-detail.webp" alt="Botanical wall and warm brass lighting" fill sizes="240px" className="object-cover" /></div>
           </div>
           <div className="lg:pl-10">
             <p className="text-xs uppercase tracking-[0.24em] text-gold-dark">Your visit</p>
