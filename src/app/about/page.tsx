@@ -56,15 +56,8 @@ export default function AboutPage() {
       <section className="container-page py-16">
         <div className="grid items-center gap-12 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 p-6 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:p-10 lg:grid-cols-2">
           <div className="relative">
-            <div className="aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 bg-gradient-to-br from-sage-200 via-sand-100 to-champagne shadow-lg">
-              <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-cream-50/80 font-serif text-4xl text-sage-600 shadow-md">
-                  氣
-                </span>
-                <p className="font-serif text-2xl text-brown-900">
-                  {business.tagline}
-                </p>
-              </div>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 shadow-lg">
+              <Image src="/images/studio/studio-lounge.webp" alt="Chi Body Care studio lounge" fill sizes="(min-width:1024px) 45vw, 100vw" className="object-cover object-center" />
             </div>
           </div>
           <div>
