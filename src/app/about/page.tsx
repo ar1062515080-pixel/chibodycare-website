@@ -46,13 +46,11 @@ export default function AboutPage() {
       <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
         <Image src="/images/studio/about-massage-background.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
       </div>
-      <div className="absolute inset-0 -z-10 bg-cream-50/35" aria-hidden="true" />
-
-      <div className="bg-cream-50/60 backdrop-blur-[1px]"><PageHero
+      <PageHero
         eyebrow="Our Story"
         title="Where ancient wisdom meets modern care"
         description={`${business.name} was founded on a simple belief — that everyone deserves a place to slow down, restore and reconnect with their wellbeing.`}
-      /></div>
+      />
 
       {/* Brand story */}
       <section className="container-page py-16">

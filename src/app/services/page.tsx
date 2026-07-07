@@ -20,9 +20,7 @@ export default function ServicesPage() {
       <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
         <Image src="/images/studio/botanical-wall-services.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
       </div>
-      <div className="absolute inset-0 -z-10 bg-cream-50/35" aria-hidden="true" />
-
-      <div className="bg-cream-50/60 backdrop-blur-[1px]"><PageHero
+      <PageHero
         eyebrow="Treatment Menu"
         title="Treatments for body & mind"
         description="Browse our full menu of restorative treatments. Every session can be booked online in minutes."
@@ -30,7 +28,7 @@ export default function ServicesPage() {
         <Button href="/book" variant="primary" size="md">
           Start booking
         </Button>
-      </PageHero></div>
+      </PageHero>
 
       {/* Category anchor navigation */}
       <nav
