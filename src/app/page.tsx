@@ -18,23 +18,21 @@ export default function HomePage() {
   return (
     <main className="overflow-hidden">
       <section className="relative min-h-[calc(100svh-5rem)] bg-brown-900 text-cream-50">
-        <Image src="/images/studio/studio-exterior.webp" alt="Chi Body Care studio exterior" fill priority sizes="100vw" className="object-cover object-center" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(28,20,14,.9)_0%,rgba(28,20,14,.63)_44%,rgba(28,20,14,.12)_76%)]" />
-        <div aria-hidden="true" className="absolute -left-36 top-1/2 size-[34rem] -translate-y-1/2 rounded-full border border-gold-light/25" />
-        <div aria-hidden="true" className="absolute -left-24 top-1/2 size-[27rem] -translate-y-1/2 rounded-full border border-gold-light/20" />
-        <div className="container-page relative flex min-h-[calc(100svh-5rem)] items-center py-20">
-          <div className="max-w-2xl animate-fade-up">
-            <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="mb-7 size-28 object-contain drop-shadow-2xl sm:size-36" />
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-gold-light">Massage · Acupuncture · Wellness</p>
-            <h1 className="mt-5 text-balance font-serif text-5xl font-medium leading-[.98] sm:text-6xl lg:text-7xl">A quieter place<br />to feel like yourself.</h1>
-            <p className="mt-6 max-w-xl text-base leading-7 text-cream-100/78 sm:text-lg">Step away from the pace of the day. Our Adelaide studios pair experienced care with warm, beautifully considered spaces.</p>
-            <div className="mt-9 flex flex-wrap gap-3">
+        <Image src="/images/studio/studio-exterior.webp" alt="Chi Body Care studio exterior" fill priority sizes="100vw" className="object-cover object-center saturate-[.92] contrast-[.88] brightness-[.93]" />
+        <div className="absolute inset-0 bg-[#30372f]/10" />
+        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(48,55,47,.76)_0%,rgba(48,55,47,.64)_24%,rgba(48,55,47,.46)_42%,rgba(48,55,47,.25)_56%,rgba(48,55,47,.09)_68%,transparent_79%)]" />
+        <div className="container-page relative flex min-h-[calc(100svh-5rem)] items-center py-16 sm:py-20">
+          <div className="max-w-xl animate-fade-up lg:ml-2">
+            <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="mb-7 size-24 object-contain drop-shadow-xl sm:size-28" />
+            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-gold-light">Massage · Acupuncture · Wellness</p>
+            <h1 className="mt-5 text-balance font-serif text-5xl font-medium leading-[1.02] drop-shadow-[0_3px_18px_rgba(20,24,20,.38)] sm:text-6xl">A quieter place<br />to feel like yourself.</h1>
+            <p className="mt-6 max-w-lg text-base leading-7 text-cream-100/82">Step away from the pace of the day. Our Adelaide studios pair experienced care with warm, beautifully considered spaces.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
               <Button href="/book" size="lg" variant="secondary">Book Now</Button>
-              <Button href="/services" size="lg" variant="ghost" className="border border-cream-50/35 text-cream-50 hover:bg-cream-50/10">View Services</Button>
+              <Button href="/services" size="lg" variant="ghost" className="border border-gold-light/55 text-cream-50 hover:bg-cream-50/10">View Services</Button>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-6 right-7 hidden text-right text-[10px] uppercase tracking-[0.2em] text-cream-50/60 md:block"><span className="block text-gold-light">Chi Body Care</span>Real studio, Adelaide</div>
       </section>
 
       <section className="bg-cream-100 py-20 sm:py-28">
