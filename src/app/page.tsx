@@ -18,18 +18,17 @@ export default function HomePage() {
   return (
     <main className="overflow-hidden">
       <section className="relative min-h-[calc(100svh-5rem)] bg-brown-900 text-cream-50">
-        <Image src="/images/studio/studio-exterior.webp" alt="Chi Body Care studio exterior" fill priority sizes="100vw" className="object-cover object-center saturate-[.92] contrast-[.88] brightness-[.93]" />
+        <Image src="/images/studio/studio-exterior.webp" alt="Chi Body Care studio exterior" fill priority sizes="100vw" className="object-cover object-center opacity-75 saturate-[.92] contrast-[.88] brightness-[.93]" />
         <div className="absolute inset-0 bg-[#30372f]/[.04]" />
         <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(36,43,36,.92)_0%,rgba(36,43,36,.86)_24%,rgba(36,43,36,.68)_43%,rgba(36,43,36,.42)_57%,rgba(36,43,36,.18)_69%,rgba(36,43,36,.05)_78%,transparent_86%)]" />
         <div className="container-page relative flex min-h-[calc(100svh-5rem)] items-center py-16 sm:py-20">
-          <div className="max-w-xl animate-fade-up lg:ml-2">
-            <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="mb-7 size-24 object-contain drop-shadow-xl sm:size-28" />
-            <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-gold-light">Massage · Acupuncture · Wellness</p>
-            <h1 className="mt-5 text-balance font-serif text-5xl font-medium leading-[1.02] drop-shadow-[0_3px_18px_rgba(20,24,20,.38)] sm:text-6xl">A quieter place<br />to feel like yourself.</h1>
-            <p className="mt-6 max-w-lg text-base leading-7 text-cream-100/82">Step away from the pace of the day. Our Adelaide studios pair experienced care with warm, beautifully considered spaces.</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button href="/book" size="lg" variant="secondary">Book Now</Button>
-              <Button href="/services" size="lg" variant="ghost" className="border border-gold-light/55 text-cream-50 hover:bg-cream-50/10">View Services</Button>
+          <div className="max-w-3xl animate-fade-up lg:ml-2">
+            <p className="text-xs font-medium uppercase tracking-[0.32em] text-gold-light sm:text-sm">Massage · Acupuncture · Wellness</p>
+            <h1 className="mt-6 text-balance font-serif text-6xl font-medium leading-[.98] drop-shadow-[0_3px_18px_rgba(20,24,20,.38)] sm:text-7xl lg:text-8xl">A quieter place<br />to feel like yourself.</h1>
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-cream-100/85 sm:text-xl">Step away from the pace of the day. Our Adelaide studios pair experienced care with warm, beautifully considered spaces.</p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Button href="/book" size="lg" variant="secondary" className="text-base">Book Now</Button>
+              <Button href="/services" size="lg" variant="ghost" className="border border-gold-light/55 text-base text-cream-50 hover:bg-cream-50/10">View Services</Button>
             </div>
           </div>
         </div>
