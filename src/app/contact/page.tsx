@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { PageHero } from "@/components/page-hero";
 import { ContactForm } from "@/components/contact-form";
-import { business, locations, openingHours } from "@/lib/business";
-import { formatTime } from "@/lib/format";
+import { business, locations } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: "Contact & Locations",
@@ -40,7 +39,7 @@ export default function ContactPage() {
               <h3 className="font-serif text-xl font-medium text-brown-900">
                 Get in touch
               </h3>
-              <dl className="mt-4 space-y-3 text-sm">
+              <dl className="mt-4 text-sm">
                 <div className="flex items-center gap-3">
                   <dt className="text-brown-700/60">Email</dt>
                   <dd>
@@ -52,37 +51,7 @@ export default function ContactPage() {
                     </a>
                   </dd>
                 </div>
-                <div className="flex items-center gap-3">
-                  <dt className="text-brown-700/60">Bookings</dt>
-                  <dd>
-                    <a
-                      href={`tel:${business.bookingPhone.replace(/\s/g, "")}`}
-                      className="font-medium text-sage-700 transition-colors hover:text-sage-600"
-                    >
-                      {business.bookingPhone}
-                    </a>
-                  </dd>
-                </div>
               </dl>
-            </div>
-
-            <div className="rounded-3xl border border-sand-100 bg-cream-50 p-6 shadow-sm">
-              <h3 className="font-serif text-xl font-medium text-brown-900">
-                Opening hours
-              </h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                {openingHours.map((entry) => (
-                  <li
-                    key={entry.day}
-                    className="flex justify-between border-b border-sand-100 pb-2 last:border-0 last:pb-0"
-                  >
-                    <span className="text-brown-800">{entry.day}</span>
-                    <span className="text-brown-700/70">
-                      {formatTime(entry.open)} – {formatTime(entry.close)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>

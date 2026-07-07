@@ -1,9 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { navLinks } from "@/lib/nav";
-import { business, locations, openingHours } from "@/lib/business";
+import { business, locations } from "@/lib/business";
 import { categories } from "@/lib/services";
-import { formatTime } from "@/lib/format";
 
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -11,8 +10,8 @@ export function SiteFooter() {
   const topLocations = locations.slice(0, 6);
 
   return (
-    <footer className="mt-24 border-t border-sand-200 bg-brown-900 text-cream-100">
-      <div className="container-page grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-4">
+    <footer className="border-t border-sand-200 bg-brown-900 text-cream-100">
+      <div className="container-page grid gap-12 py-16 md:grid-cols-3">
         <div>
           <Link href="/" aria-label="Chi Body Care home" className="inline-flex rounded-full bg-cream-50/95 p-1 shadow-sm">
             <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="h-20 w-20 object-contain" />
@@ -70,19 +69,6 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div>
-          <h3 className="font-serif text-lg text-cream-50">Opening Hours</h3>
-          <ul className="mt-4 space-y-1.5 text-sm text-cream-100/70">
-            {openingHours.map((entry) => (
-              <li key={entry.day} className="flex justify-between gap-4">
-                <span>{entry.day}</span>
-                <span className="text-cream-100/60">
-                  {formatTime(entry.open)} – {formatTime(entry.close)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
       </div>
 
       <div className="border-t border-cream-100/10">
