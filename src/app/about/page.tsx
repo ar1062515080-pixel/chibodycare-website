@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { PageHero } from "@/components/page-hero";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { TeamCard } from "@/components/team-card";
@@ -41,16 +42,21 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <>
-      <PageHero
+    <main className="relative isolate overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
+        <Image src="/images/studio/about-massage-background.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
+      </div>
+      <div className="absolute inset-0 -z-10 bg-cream-50/35" aria-hidden="true" />
+
+      <div className="bg-cream-50/60 backdrop-blur-[1px]"><PageHero
         eyebrow="Our Story"
         title="Where ancient wisdom meets modern care"
         description={`${business.name} was founded on a simple belief — that everyone deserves a place to slow down, restore and reconnect with their wellbeing.`}
-      />
+      /></div>
 
       {/* Brand story */}
       <section className="container-page py-16">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="grid items-center gap-12 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 p-6 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:p-10 lg:grid-cols-2">
           <div className="relative">
             <div className="aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 bg-gradient-to-br from-sage-200 via-sand-100 to-champagne shadow-lg">
               <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
@@ -97,7 +103,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-sand-50/60 py-16">
+      <section className="bg-sand-50/70 py-16 backdrop-blur-sm">
         <div className="container-page">
           <SectionHeading
             eyebrow="What we value"
@@ -125,7 +131,7 @@ export default function AboutPage() {
       </section>
 
       {/* Therapist profiles */}
-      <section className="container-page py-16">
+      <section className="container-page my-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
         <SectionHeading
           eyebrow="Our Practitioners"
           title="Meet the team caring for you"
@@ -137,6 +143,6 @@ export default function AboutPage() {
           ))}
         </div>
       </section>
-    </>
+    </main>
   );
 }
