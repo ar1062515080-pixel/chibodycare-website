@@ -9,6 +9,7 @@ export async function AdminNav() {
   const links = [
     [tr(locale, "Daily roster", "每日排班"), "/admin/roster"],
     [tr(locale, "Bookings", "预约管理"), "/admin/bookings"],
+    [tr(locale, "Customers", "客户管理"), "/admin/customers"],
     [tr(locale, "Voucher sales / use", "礼券售卖/使用"), "/admin/vouchers"],
     [tr(locale, "Therapists", "治疗师"), "/admin/therapists"],
     [tr(locale, "Locations", "门店管理"), "/admin/locations"],
