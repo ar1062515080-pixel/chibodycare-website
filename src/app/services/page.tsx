@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PageHero } from "@/components/page-hero";
 import { ServiceCard } from "@/components/service-card";
@@ -15,8 +16,13 @@ export default function ServicesPage() {
   const grouped = getServicesGroupedByCategory();
 
   return (
-    <>
-      <PageHero
+    <main className="relative isolate overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
+        <Image src="/images/studio/botanical-wall-services.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
+      </div>
+      <div className="absolute inset-0 -z-10 bg-cream-50/35" aria-hidden="true" />
+
+      <div className="bg-cream-50/60 backdrop-blur-[1px]"><PageHero
         eyebrow="Treatment Menu"
         title="Treatments for body & mind"
         description="Browse our full menu of restorative treatments. Every session can be booked online in minutes."
@@ -24,12 +30,12 @@ export default function ServicesPage() {
         <Button href="/book" variant="primary" size="md">
           Start booking
         </Button>
-      </PageHero>
+      </PageHero></div>
 
       {/* Category anchor navigation */}
       <nav
         aria-label="Treatment categories"
-        className="sticky top-20 z-30 border-b border-sand-100 bg-cream-50/90 backdrop-blur-md"
+        className="sticky top-20 z-30 border-b border-sand-100 bg-cream-50/85 backdrop-blur-md"
       >
         <div className="container-page">
           <ul className="no-scrollbar flex gap-2 overflow-x-auto py-3">
@@ -47,9 +53,9 @@ export default function ServicesPage() {
         </div>
       </nav>
 
-      <div className="container-page space-y-16 py-16">
+      <div className="container-page space-y-10 py-16">
         {grouped.map(({ category, services }) => (
-          <section key={category.id} id={category.id} className="scroll-mt-40">
+          <section key={category.id} id={category.id} className="scroll-mt-40 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 p-6 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:p-8">
             <div className="flex flex-col gap-3 border-b border-sand-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex items-start gap-4">
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sage-50 text-2xl">
@@ -74,6 +80,6 @@ export default function ServicesPage() {
           </section>
         ))}
       </div>
-    </>
+    </main>
   );
 }
