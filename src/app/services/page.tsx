@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { PageHero } from "@/components/page-hero";
 import { getServicesGroupedByCategory } from "@/lib/services";
 import { Button } from "@/components/ui/button";
@@ -16,10 +15,13 @@ export default function ServicesPage() {
   const grouped = getServicesGroupedByCategory().sort((a, b) => (priority[a.category.id] ?? 99) - (priority[b.category.id] ?? 99));
 
   return (
-    <main className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-20 bg-cream-100" aria-hidden="true">
-        <Image src="/images/studio/botanical-wall-services.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
-      </div>
+    <main
+      className="relative bg-cream-100 bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(250, 247, 240, 0.6), rgba(250, 247, 240, 0.6)), url('/images/studio/botanical-wall-services.png')",
+      }}
+    >
       <PageHero
         eyebrow="Treatment Menu"
         title="Treatments for body & mind"

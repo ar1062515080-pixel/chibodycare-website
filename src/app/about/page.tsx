@@ -42,10 +42,13 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <main className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-20 bg-cream-100" aria-hidden="true">
-        <Image src="/images/studio/about-massage-background.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
-      </div>
+    <main
+      className="relative bg-cream-100 bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(250, 247, 240, 0.6), rgba(250, 247, 240, 0.6)), url('/images/studio/about-massage-background.png')",
+      }}
+    >
       <PageHero
         eyebrow="Our Story"
         title="Where ancient wisdom meets modern care"
