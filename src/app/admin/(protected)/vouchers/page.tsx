@@ -1,5 +1,6 @@
-import { redeemGiftVoucher, removeGiftVoucherRedemption, saveGiftVoucherSale } from "@/app/admin/actions";
+import { removeGiftVoucherRedemption, saveGiftVoucherSale } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { VoucherRedemptionForm } from "@/components/admin/voucher-redemption-form";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -45,13 +46,7 @@ export default async function VouchersPage({ searchParams }: { searchParams: Pro
 
       <section className="rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm md:p-6">
         <div className="flex items-center justify-between"><div><p className="text-xs uppercase tracking-[0.16em] text-gold-dark">02 · {tr(locale, "Redeem", "使用")}</p><h2 className="mt-1 font-serif text-2xl">{tr(locale, "Use a gift voucher", "礼券使用")}</h2></div><span className="rounded-full bg-gold/10 px-3 py-1 text-xs text-gold-dark">{tr(locale, "Used today", "默认当天使用")}</span></div>
-        <form action={redeemGiftVoucher} className="mt-5 space-y-4">
-          <input type="hidden" name="location_id" value={locationId} /><input type="hidden" name="used_date" value={today} />
-          <label className="block text-xs font-medium">{tr(locale, "Voucher number", "礼券编号")}<input required name="voucher_number" placeholder={tr(locale, "Enter voucher number", "输入礼券编号")} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm" /></label>
-          <label className="block text-xs font-medium">{tr(locale, "Amount to use", "本次使用金额")}<input required type="number" min="0.01" step="0.01" name="amount" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm" /></label>
-          <div className="rounded-xl bg-sand-50 px-4 py-3 text-xs text-brown-700/65">{tr(locale, "The remaining balance is calculated automatically after saving.", "保存后系统会自动计算并显示礼券余额。")}</div>
-          <SubmitButton pendingLabel={tr(locale, "Saving…", "保存中…")} className="w-full rounded-xl bg-gold-dark px-5 py-3 text-sm text-white">{tr(locale, "Record voucher use", "记录礼券使用")}</SubmitButton>
-        </form>
+        <VoucherRedemptionForm locationId={locationId} usedDate={today} locale={locale} vouchers={sales.map((sale) => ({ voucherNumber: sale.voucher_number, balanceCents: sale.face_value_cents - (usedBySale.get(sale.id) ?? 0) }))} />
       </section>
     </div>
 
