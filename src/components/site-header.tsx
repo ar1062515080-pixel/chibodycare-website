@@ -56,11 +56,12 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
+              aria-current={isActive(link.href) ? "page" : undefined}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "relative rounded-full px-4 py-2 text-sm font-medium transition-all",
                 isActive(link.href)
-                  ? "text-sage-700"
-                  : "text-brown-800/80 hover:text-sage-700",
+                  ? "bg-sage-100/90 text-sage-800 shadow-sm after:absolute after:bottom-0.5 after:left-1/2 after:h-0.5 after:w-5 after:-translate-x-1/2 after:rounded-full after:bg-gold-dark"
+                  : "text-brown-800/80 hover:bg-sand-50 hover:text-sage-700",
               )}
             >
               {link.label}
@@ -135,10 +136,11 @@ export function SiteHeader() {
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
+                  aria-current={isActive(link.href) ? "page" : undefined}
                   className={cn(
                     "block rounded-2xl px-4 py-3.5 text-base font-medium transition-colors",
                     isActive(link.href)
-                      ? "bg-sage-50 text-sage-700"
+                      ? "border-l-4 border-gold-dark bg-sage-100 text-sage-800 shadow-sm"
                       : "text-brown-800 hover:bg-sand-50",
                   )}
                 >
