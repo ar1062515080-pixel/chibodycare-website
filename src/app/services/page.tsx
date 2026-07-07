@@ -17,7 +17,7 @@ export default function ServicesPage() {
 
   return (
     <main className="relative isolate overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-cream-100" aria-hidden="true">
         <Image src="/images/studio/botanical-wall-services.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
       </div>
       <PageHero
@@ -30,7 +30,7 @@ export default function ServicesPage() {
         </Button>
       </PageHero>
 
-      <div className="container-page py-12 sm:py-16">
+      <div className="container-page pb-0 pt-12 sm:pt-16">
         <TreatmentMenu groups={grouped} />
       </div>
     </main>

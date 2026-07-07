@@ -43,7 +43,7 @@ const values = [
 export default function AboutPage() {
   return (
     <main className="relative isolate overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 -z-20 bg-cream-100" aria-hidden="true">
+      <div className="pointer-events-none absolute inset-0 -z-20 bg-cream-100" aria-hidden="true">
         <Image src="/images/studio/about-massage-background.png" alt="" fill priority sizes="100vw" className="object-cover opacity-40" />
       </div>
       <PageHero
@@ -122,7 +122,7 @@ export default function AboutPage() {
       </section>
 
       {/* Therapist profiles */}
-      <section className="container-page my-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
+      <section className="container-page mb-0 mt-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
         <SectionHeading
           eyebrow="Our Practitioners"
           title="Meet the team caring for you"
