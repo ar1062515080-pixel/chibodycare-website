@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
+import { ConditionalSiteFooter } from "@/components/conditional-site-footer";
 import { business } from "@/lib/business";
 
 const cormorant = Cormorant_Garamond({
@@ -57,7 +57,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-cream-100 text-brown-900">
         <SiteHeader />
         <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <ConditionalSiteFooter />
       </body>
     </html>
   );
