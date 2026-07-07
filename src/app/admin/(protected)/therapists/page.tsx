@@ -67,7 +67,7 @@ export default async function TherapistsPage({ searchParams }: { searchParams: P
     <h1 className="mt-2 font-serif text-4xl text-brown-900">{tr(locale, "Store team directory", "门店治疗师管理")}</h1>
     <p className="mt-2 text-brown-700/70">{tr(locale, "Choose a store, then manage only that store’s therapist team.", "先选择门店，再管理该门店自己的治疗师。")}</p>
     {locations.length ? <>
-      <div className="mt-7 rounded-3xl border border-gold-light/60 bg-champagne-100/60 p-5"><LocationFilter locations={locations} value={locationId} label={tr(locale, "Store", "门店")} /></div>
+      <div className="mt-7 border-y border-sand-200 bg-champagne-100/35 px-4 py-4 sm:rounded-2xl sm:border"><LocationFilter locations={locations} value={locationId} label={tr(locale, "Select store", "选择门店")} /></div>
       <div className="mt-7 flex items-end justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.16em] text-gold-dark">{selectedLocation?.name}</p><h2 className="mt-1 font-serif text-2xl text-brown-900">{tr(locale, "Therapist team", "治疗师名单")}</h2></div><span className="text-sm text-brown-700/60">{therapists.length} {tr(locale, "therapists", "位治疗师")}</span></div>
       <div className="mt-4 space-y-4">{form()}{therapists.map((therapist) => <div key={therapist.id}>{form(therapist)}</div>)}</div>
     </> : <p className="mt-8 rounded-2xl border border-sand-200 bg-cream-50 p-5">{tr(locale, "Add an active store before managing therapists.", "请先添加并启用门店，再管理治疗师。")}</p>}
