@@ -445,19 +445,28 @@ export async function saveDailyStoreRecord(formData: FormData) {
   const recordDate = String(formData.get("record_date") ?? "");
   const openingCash = moneyToCents(formData.get("opening_cash"));
   const promotion = moneyToCents(formData.get("promotion"));
-  const otherIncome = moneyToCents(formData.get("other_income"));
+  const otherExpense = moneyToCents(formData.get("other_expense"));
   const cashExpense = moneyToCents(formData.get("cash_expense"));
-  if (!locationId || !/^\d{4}-\d{2}-\d{2}$/.test(recordDate) || [openingCash, promotion, otherIncome, cashExpense].some((value) => value === null)) {
+  if (!locationId || !/^\d{4}-\d{2}-\d{2}$/.test(recordDate) || [openingCash, promotion, otherExpense, cashExpense].some((value) => value === null)) {
     throw new Error("Please enter valid daily record amounts.");
   }
+  const cleanItem = (value: FormDataEntryValue | null) => String(value ?? "").replace(/[\r\n]+/g, " ").trim();
+  const generalNotes = String(formData.get("notes") ?? "").trim();
+  const otherExpenseItem = cleanItem(formData.get("other_expense_item"));
+  const cashExpenseItem = cleanItem(formData.get("cash_expense_item"));
+  const storedNotes = [
+    otherExpenseItem ? `[OTHER_EXPENSE_ITEM]${otherExpenseItem}` : "",
+    cashExpenseItem ? `[CASH_EXPENSE_ITEM]${cashExpenseItem}` : "",
+    generalNotes,
+  ].filter(Boolean).join("\n");
   const { error } = await supabase.from("daily_store_records").upsert({
     location_id: locationId,
     record_date: recordDate,
     opening_cash_cents: openingCash,
     promotion_cents: promotion,
-    other_income_cents: otherIncome,
+    other_income_cents: otherExpense,
     cash_expense_cents: cashExpense,
-    notes: String(formData.get("notes") ?? "").trim(),
+    notes: storedNotes,
     updated_at: new Date().toISOString(),
   }, { onConflict: "location_id,record_date" });
   if (error) throw new Error(error.message);

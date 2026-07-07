@@ -25,6 +25,15 @@ function minutesFromTime(value: string) { return Number(value.slice(0, 2)) * 60 
 function cents(value: number | null | undefined) { return value ?? 0; }
 function dollars(value: number) { return (value / 100).toFixed(2); }
 function formatMoney(value: number) { return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(value / 100); }
+function parseDailyNotes(value: string) {
+  const lines = value.split(/\r?\n/);
+  const tagged = (tag: string) => lines.find((line) => line.startsWith(tag))?.slice(tag.length) ?? "";
+  return {
+    otherExpenseItem: tagged("[OTHER_EXPENSE_ITEM]"),
+    cashExpenseItem: tagged("[CASH_EXPENSE_ITEM]"),
+    notes: lines.filter((line) => !line.startsWith("[OTHER_EXPENSE_ITEM]") && !line.startsWith("[CASH_EXPENSE_ITEM]")).join("\n").trim(),
+  };
+}
 
 export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ date?: string; location?: string }> }) {
   const params = await searchParams;
@@ -43,6 +52,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const rosterRows = rostersResult.data ?? [];
   const rawBookings = ((bookingsResult.data ?? []) as unknown as BookingRow[]).filter((booking) => localDate(booking.start_at) === date);
   const daily = (dailyResult.data as DailyRecord | null) ?? { opening_cash_cents: 0, promotion_cents: 0, other_income_cents: 0, cash_expense_cents: 0, notes: "" };
+  const dailyNotes = parseDailyNotes(daily.notes);
   const vouchers = (vouchersResult.data ?? []) as VoucherSale[];
 
   const therapistMap = new Map<string, CalendarTherapist>();
@@ -81,7 +91,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const projectSales = rawBookings.reduce((sum, booking) => sum + cents(relationOne(booking.services)?.price_cents), 0);
   const voucherSales = vouchers.reduce((sum, voucher) => sum + voucher.face_value_cents, 0);
   const registeredIncome = Object.values(bookingPayment).reduce((a, b) => a + b, 0) + Object.values(voucherPayment).reduce((a, b) => a + b, 0);
-  const expectedClosingCash = daily.opening_cash_cents + bookingPayment.cash + voucherPayment.cash + daily.other_income_cents - daily.promotion_cents - daily.cash_expense_cents;
+  const expectedClosingCash = daily.opening_cash_cents + bookingPayment.cash + voucherPayment.cash - daily.other_income_cents - daily.promotion_cents - daily.cash_expense_cents;
   const duration = { relaxation: 0, regular: 0, foot: 0, booked: 0 };
   for (const booking of rawBookings) {
     const mins = Math.max(0, Math.round((new Date(booking.end_at).getTime() - new Date(booking.start_at).getTime()) / 60000));
@@ -113,10 +123,13 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <div className="overflow-hidden rounded-2xl border border-sand-200"><table className="w-full text-sm"><thead className="bg-sand-50 text-left text-xs text-brown-700/60"><tr><th className="px-4 py-3">{tr(locale, "Payment", "收款方式")}</th><th className="px-4 py-3 text-right">{tr(locale, "Treatments", "预约项目")}</th><th className="px-4 py-3 text-right">{tr(locale, "Vouchers", "礼券销售")}</th><th className="px-4 py-3 text-right">{tr(locale, "Total", "合计")}</th></tr></thead><tbody>{(["card", "hicaps", "cash", "voucher", "waived"] as const).map((key) => <tr key={key} className="border-t border-sand-100"><td className="px-4 py-3">{{ card: tr(locale, "Card", "刷卡"), hicaps: "HICAPS", cash: tr(locale, "Cash", "现金"), voucher: tr(locale, "Gift voucher", "礼券"), waived: tr(locale, "Free / waived", "免费 / 减免") }[key]}</td><td className="px-4 py-3 text-right">{formatMoney(bookingPayment[key])}</td><td className="px-4 py-3 text-right">{formatMoney(voucherPayment[key])}</td><td className="px-4 py-3 text-right font-medium">{formatMoney(bookingPayment[key] + voucherPayment[key])}</td></tr>)}</tbody></table></div>
         <div className="rounded-2xl border border-sand-200 p-4"><h3 className="font-serif text-xl">{tr(locale, "Treatment duration", "项目时长")}</h3><div className="mt-4 grid grid-cols-2 gap-3">{[[tr(locale, "Relaxation massage", "放松按摩"), duration.relaxation], [tr(locale, "Other treatments", "其他项目"), duration.regular], [tr(locale, "Foot care", "足疗"), duration.foot], [tr(locale, "Booked total", "预约总时长"), duration.booked]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-brown-700/55">{label}</p><p className="mt-1 text-lg font-semibold">{value} min</p></div>)}</div></div>
       </div>
-      <form action={saveDailyStoreRecord} className="mt-5 grid gap-4 rounded-2xl border border-sand-200 bg-sand-50/50 p-4 md:grid-cols-4">
+      <form action={saveDailyStoreRecord} className="mt-5 grid gap-4 rounded-2xl border border-sand-200 bg-sand-50/50 p-4 md:grid-cols-2 xl:grid-cols-4">
         <input type="hidden" name="location_id" value={locationId} /><input type="hidden" name="record_date" value={date} />
-        {[["opening_cash", tr(locale, "Opening cash", "开盘现金"), daily.opening_cash_cents], ["promotion", tr(locale, "Promotion / discount", "促销 / 折扣"), daily.promotion_cents], ["other_income", tr(locale, "Other income", "其他收入"), daily.other_income_cents], ["cash_expense", tr(locale, "Cash expense", "现金支出"), daily.cash_expense_cents]].map(([name, label, value]) => <label key={String(name)} className="text-xs font-medium text-brown-700">{label}<input type="number" min="0" step="0.01" name={String(name)} defaultValue={dollars(Number(value))} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>)}
-        <label className="text-xs font-medium text-brown-700 md:col-span-3">{tr(locale, "Notes", "备注")}<textarea name="notes" defaultValue={daily.notes} rows={2} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Opening cash", "开盘现金")}<input type="number" min="0" step="0.01" name="opening_cash" defaultValue={dollars(daily.opening_cash_cents)} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Promotion / discount", "促销 / 折扣")}<input type="number" min="0" step="0.01" name="promotion" defaultValue={dollars(daily.promotion_cents)} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <fieldset className="grid grid-cols-[minmax(0,.7fr)_minmax(0,1.3fr)] gap-2"><legend className="mb-1 text-xs font-medium text-brown-700">{tr(locale, "Other expense", "其他支出")}</legend><input aria-label={tr(locale, "Other expense amount", "其他支出金额")} type="number" min="0" step="0.01" name="other_expense" defaultValue={dollars(daily.other_income_cents)} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /><input aria-label={tr(locale, "Other expense item", "其他支出项目")} name="other_expense_item" defaultValue={dailyNotes.otherExpenseItem} placeholder={tr(locale, "Expense item", "支出项目")} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></fieldset>
+        <fieldset className="grid grid-cols-[minmax(0,.7fr)_minmax(0,1.3fr)] gap-2"><legend className="mb-1 text-xs font-medium text-brown-700">{tr(locale, "Cash expense", "现金支出")}</legend><input aria-label={tr(locale, "Cash expense amount", "现金支出金额")} type="number" min="0" step="0.01" name="cash_expense" defaultValue={dollars(daily.cash_expense_cents)} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /><input aria-label={tr(locale, "Cash expense item", "现金支出项目")} name="cash_expense_item" defaultValue={dailyNotes.cashExpenseItem} placeholder={tr(locale, "Expense item", "支出项目")} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></fieldset>
+        <label className="text-xs font-medium text-brown-700 md:col-span-2 xl:col-span-3">{tr(locale, "Notes", "备注")}<textarea name="notes" defaultValue={dailyNotes.notes} rows={2} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <SubmitButton pendingLabel={tr(locale, "Saving…", "保存中…")} className="self-end rounded-xl bg-brown-900 px-5 py-2.5 text-sm text-white">{tr(locale, "Save daily record", "保存经营记录")}</SubmitButton>
       </form>
     </section>
