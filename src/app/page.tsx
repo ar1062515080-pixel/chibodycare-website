@@ -19,8 +19,8 @@ export default function HomePage() {
     <main className="overflow-hidden">
       <section className="relative min-h-[calc(100svh-5rem)] bg-brown-900 text-cream-50">
         <Image src="/images/studio/studio-exterior.webp" alt="Chi Body Care studio exterior" fill priority sizes="100vw" className="object-cover object-center saturate-[.92] contrast-[.88] brightness-[.93]" />
-        <div className="absolute inset-0 bg-[#30372f]/10" />
-        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(48,55,47,.76)_0%,rgba(48,55,47,.64)_24%,rgba(48,55,47,.46)_42%,rgba(48,55,47,.25)_56%,rgba(48,55,47,.09)_68%,transparent_79%)]" />
+        <div className="absolute inset-0 bg-[#30372f]/[.04]" />
+        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(36,43,36,.92)_0%,rgba(36,43,36,.86)_24%,rgba(36,43,36,.68)_43%,rgba(36,43,36,.42)_57%,rgba(36,43,36,.18)_69%,rgba(36,43,36,.05)_78%,transparent_86%)]" />
         <div className="container-page relative flex min-h-[calc(100svh-5rem)] items-center py-16 sm:py-20">
           <div className="max-w-xl animate-fade-up lg:ml-2">
             <Image src="/images/chi-logo.png" alt="Chi Body Care" width={1024} height={1024} className="mb-7 size-24 object-contain drop-shadow-xl sm:size-28" />
