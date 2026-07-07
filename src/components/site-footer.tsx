@@ -9,8 +9,7 @@ export function SiteFooter() {
   const topCategories = categories.slice(0, 5);
 
   return (
-    <footer className="bg-brown-900 text-cream-100">
-      <div className="h-12 bg-gradient-to-b from-cream-100/95 via-sand-100/55 to-brown-900" aria-hidden="true" />
+    <footer className="mt-8 border-t border-sand-200 bg-brown-900 text-cream-100">
       <div className="container-page grid gap-12 py-16 md:grid-cols-3">
         <div>
           <Link href="/" aria-label="Chi Body Care home" className="inline-flex rounded-full bg-cream-50/95 p-1 shadow-sm">
@@ -18,6 +17,11 @@ export function SiteFooter() {
           </Link>
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-cream-100/70">
             {business.shortDescription}
+          </p>
+          <p className="mt-6 text-sm text-cream-100/70">
+            <a className="transition-colors hover:text-gold-light" href={`mailto:${business.email}`}>
+              {business.email}
+            </a>
           </p>
         </div>
 
