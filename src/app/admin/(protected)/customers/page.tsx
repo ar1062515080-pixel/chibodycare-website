@@ -1,9 +1,11 @@
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { updateCustomerBookingNote } from "@/app/admin/actions";
+import { SubmitButton } from "@/components/admin/submit-button";
 
 const TIME_ZONE = "Australia/Adelaide";
 
-type Relation = { name?: string; display_name?: string };
+type Relation = { name?: string; display_name?: string; category?: string };
 type BookingRow = {
   id: string;
   reference: string;
@@ -45,6 +47,7 @@ function duration(start: string, end: string) {
 }
 
 function paymentLabels(booking: BookingRow, locale: "en" | "zh") {
+  const money = (amount: number) => new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(amount / 100);
   const methods = [
     [cents(booking.card_amount_cents), tr(locale, "Card", "刷卡")],
     [cents(booking.insurance_amount_cents), tr(locale, "HICAPS", "保险/HICAPS")],
@@ -52,8 +55,23 @@ function paymentLabels(booking: BookingRow, locale: "en" | "zh") {
     [cents(booking.voucher_amount_cents), tr(locale, "Voucher", "礼券")],
     [cents(booking.waived_amount_cents), tr(locale, "Waived", "减免")],
   ] as const;
-  const active = methods.filter(([amount]) => amount > 0).map(([, label]) => label);
+  const active = methods.filter(([amount]) => amount > 0).map(([amount, label]) => `${label} ${money(amount)}`);
   return active.length ? active.join(" + ") : tr(locale, "Not recorded", "未记录");
+}
+
+function categoryLabel(category: string | undefined, locale: "en" | "zh") {
+  const labels: Record<string, [string, string]> = {
+    relaxation: ["Relaxation", "放松按摩"],
+    "remedial-pregnancy": ["Remedial", "理疗按摩"],
+    "foot-care": ["Foot care", "足疗"],
+    "deep-recovery": ["Deep recovery", "深度恢复"],
+    aromatherapy: ["Aromatherapy", "芳香疗法"],
+    acupuncture: ["Acupuncture", "针灸"],
+    "additional-services": ["Additional services", "其他项目"],
+    "deluxe-customised": ["Deluxe customised", "尊享定制"],
+  };
+  const label = category ? labels[category] : undefined;
+  return label ? label[locale === "zh" ? 1 : 0] : category || "—";
 }
 
 export default async function CustomersPage({
@@ -67,7 +85,7 @@ export default async function CustomersPage({
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("bookings")
-    .select("id,reference,customer_name,customer_phone,customer_email,start_at,end_at,status,notes,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,therapists(display_name),locations(name),services(name)")
+    .select("id,reference,customer_name,customer_phone,customer_email,start_at,end_at,status,notes,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,therapists(display_name),locations(name),services(name,category)")
     .order("start_at", { ascending: false });
 
   const grouped = new Map<string, Customer>();
@@ -165,11 +183,17 @@ export default async function CustomersPage({
                         <p className="mt-1 text-xs text-brown-700/45">{booking.reference}</p>
                       </td>
                       <td className="py-4 pr-4">{one(booking.locations)?.name || "—"}</td>
-                      <td className="py-4 pr-4">{one(booking.services)?.name || "—"}</td>
+                      <td className="py-4 pr-4 font-medium">{categoryLabel(one(booking.services)?.category, locale)}</td>
                       <td className="whitespace-nowrap py-4 pr-4 font-medium">{duration(booking.start_at, booking.end_at)} min</td>
                       <td className="py-4 pr-4">{one(booking.therapists)?.display_name || "—"}</td>
                       <td className="py-4 pr-4">{paymentLabels(booking, locale)}</td>
-                      <td className="max-w-xs whitespace-pre-wrap py-4 pr-5 text-brown-700/70">{booking.notes || "—"}</td>
+                      <td className="w-72 py-3 pr-5">
+                        <form action={updateCustomerBookingNote} className="flex gap-2">
+                          <input type="hidden" name="booking_id" value={booking.id} />
+                          <input name="notes" defaultValue={booking.notes} placeholder={tr(locale, "Add note", "输入备注")} maxLength={2000} className="min-w-0 flex-1 rounded-lg border border-sand-200 bg-white px-3 py-2 text-sm outline-none focus:border-gold-dark" />
+                          <SubmitButton pendingLabel="…" className="rounded-lg bg-brown-900 px-3 py-2 text-xs text-white">{tr(locale, "Save", "保存")}</SubmitButton>
+                        </form>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

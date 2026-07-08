@@ -473,6 +473,16 @@ export async function saveDailyStoreRecord(formData: FormData) {
   revalidatePath("/admin/bookings");
 }
 
+export async function updateCustomerBookingNote(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const bookingId = String(formData.get("booking_id") ?? "");
+  const notes = String(formData.get("notes") ?? "").trim();
+  if (!bookingId || notes.length > 2000) throw new Error("Please enter a valid note.");
+  const { error } = await supabase.from("bookings").update({ notes }).eq("id", bookingId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/customers");
+}
+
 export async function saveGiftVoucherSale(formData: FormData) {
   const { supabase } = await requireAdmin();
   const locationId = String(formData.get("location_id") ?? "");
