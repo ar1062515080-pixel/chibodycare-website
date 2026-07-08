@@ -110,7 +110,13 @@ export async function saveTherapist(formData: FormData) {
   );
   if (locationError) throw new Error(locationError.message);
   await supabase.from("therapist_services").delete().eq("therapist_id", therapistId);
-  const serviceIds = formData.getAll("service_ids").map(String);
+  const categories = formData.getAll("service_categories").map(String);
+  const legacyServiceIds = formData.getAll("service_ids").map(String);
+  const { data: categoryServices, error: categoryError } = categories.length
+    ? await supabase.from("services").select("id").in("category", categories).eq("active", true)
+    : { data: [], error: null };
+  if (categoryError) throw new Error(categoryError.message);
+  const serviceIds = [...new Set([...legacyServiceIds, ...(categoryServices ?? []).map((service) => service.id)])];
   if (serviceIds.length) {
     const { error } = await supabase.from("therapist_services").insert(
       serviceIds.map((serviceId) => ({ therapist_id: therapistId, service_id: serviceId })),

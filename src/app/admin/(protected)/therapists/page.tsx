@@ -37,10 +37,22 @@ export default async function TherapistsPage({ searchParams }: { searchParams: P
     .filter((therapist): therapist is Therapist => Boolean(therapist))
     .sort((a, b) => a.display_name.localeCompare(b.display_name));
   const services = serviceRows ?? [];
+  const categoryLabels: Record<string, { en: string; zh: string }> = {
+    relaxation: { en: "Relaxation", zh: "放松按摩" },
+    "remedial-pregnancy": { en: "Remedial", zh: "理疗按摩" },
+    "foot-care": { en: "Foot care", zh: "足疗" },
+    "deep-recovery": { en: "Deep recovery", zh: "深度恢复" },
+    aromatherapy: { en: "Aromatherapy", zh: "芳香疗法" },
+    acupuncture: { en: "Acupuncture", zh: "针灸" },
+    "additional-services": { en: "Additional services", zh: "其他项目" },
+    "deluxe-customised": { en: "Deluxe customised", zh: "尊享定制" },
+  };
+  const categories = [...new Set(services.map((service) => service.category))];
   const selectedLocation = locations.find((location) => location.id === locationId);
 
   const form = (therapist?: Therapist) => {
     const assigned = new Set(therapist?.therapist_services?.map((row) => row.service_id) ?? []);
+    const assignedCategories = new Set(services.filter((service) => assigned.has(service.id)).map((service) => service.category));
     return (
       <EnterSubmitForm action={saveTherapist} saveOnBlur={Boolean(therapist)} className="rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm">
         <input type="hidden" name="id" value={therapist?.id || ""} />
@@ -51,9 +63,9 @@ export default async function TherapistsPage({ searchParams }: { searchParams: P
         </div>
         <div className="mt-3 flex flex-wrap gap-5">
           <label className="flex gap-2 text-sm"><input type="checkbox" name="active" defaultChecked={therapist?.active ?? true} />{tr(locale, "Active", "启用")}</label>
-          <label className="flex gap-2 text-sm"><input type="checkbox" name="public_display" defaultChecked={therapist?.public_display ?? false} />{tr(locale, "Show name publicly", "向顾客显示姓名")}</label>
+          <label className="flex gap-2 text-sm"><input type="checkbox" name="public_display" defaultChecked={therapist?.public_display ?? true} />{tr(locale, "Show name publicly", "向顾客显示姓名")}</label>
         </div>
-        <details className="mt-4"><summary className="cursor-pointer text-sm font-medium text-sage-700">{tr(locale, `Default service capabilities (${assigned.size})`, `默认服务能力（${assigned.size}）`)}</summary><div className="mt-3 grid max-h-64 gap-1 overflow-y-auto rounded-xl border border-sand-200 p-3 sm:grid-cols-2">{services.map((service) => <label key={service.id} className="flex gap-2 py-1 text-xs"><input type="checkbox" name="service_ids" value={service.id} defaultChecked={assigned.has(service.id)} />{service.name}</label>)}</div></details>
+        <details className="mt-4"><summary className="cursor-pointer text-sm font-medium text-sage-700">{tr(locale, `Default service capabilities (${assignedCategories.size})`, `默认服务能力（${assignedCategories.size}）`)}</summary><div className="mt-3 grid gap-2 rounded-xl border border-sand-200 p-3 sm:grid-cols-2 lg:grid-cols-4">{categories.map((category) => { const label = categoryLabels[category]; return <label key={category} className="flex items-center gap-2 rounded-lg bg-sand-50 px-3 py-2 text-sm"><input type="checkbox" name="service_categories" value={category} defaultChecked={assignedCategories.has(category)} />{label ? label[locale] : category}</label>; })}</div></details>
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <SubmitButton pendingLabel={tr(locale, "Saving…", "正在保存…")} className="rounded-full bg-sage-700 px-5 py-2.5 text-sm font-medium text-cream-50">{therapist ? tr(locale, "Save therapist", "保存治疗师") : tr(locale, "Add therapist", "添加治疗师")}</SubmitButton>
           <span className="text-xs text-brown-700/60">{tr(locale, "Press Enter in a name field to save", "在名称输入框按回车即可保存")}</span>
