@@ -120,6 +120,16 @@ export async function saveTherapist(formData: FormData) {
   revalidatePath("/admin/therapists");
 }
 
+export async function saveTherapistPayRate(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const therapistId = String(formData.get("therapist_id") ?? "");
+  const hourlyRate = moneyToCents(formData.get("hourly_rate"));
+  if (!therapistId || hourlyRate === null) throw new Error("Please enter a valid hourly rate.");
+  const { error } = await supabase.from("therapists").update({ pay_rate_cents_per_hour: hourlyRate }).eq("id", therapistId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/reports");
+}
+
 export async function saveRoster(formData: FormData) {
   const { supabase } = await requireAdmin();
   const serviceIds = formData.getAll("service_ids").map(String);
