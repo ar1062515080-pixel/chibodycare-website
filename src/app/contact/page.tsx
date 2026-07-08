@@ -28,7 +28,7 @@ export default function ContactPage() {
         description="Questions about a treatment or booking? Reach out, or visit one of our 13 studios across Adelaide."
       />
 
-      <section className="container-page py-16">
+      <section className="container-page pb-10 pt-16 sm:pb-16">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Contact form */}
           <div>

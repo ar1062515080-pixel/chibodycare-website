@@ -32,7 +32,7 @@ export default function ServicesPage() {
         </Button>
       </PageHero>
 
-      <div className="container-page pb-0 pt-12 sm:pt-16">
+      <div className="container-page pb-10 pt-12 sm:pb-16 sm:pt-16">
         <TreatmentMenu groups={grouped} />
       </div>
     </main>

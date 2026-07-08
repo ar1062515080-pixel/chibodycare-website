@@ -125,7 +125,7 @@ export default function AboutPage() {
       </section>
 
       {/* Therapist profiles */}
-      <section className="container-page mb-0 mt-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
+      <section className="container-page mb-10 mt-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:mb-16">
         <SectionHeading
           eyebrow="Our Practitioners"
           title="Meet the team caring for you"
