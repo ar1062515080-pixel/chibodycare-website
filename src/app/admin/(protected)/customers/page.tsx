@@ -2,6 +2,8 @@ import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { updateCustomerBookingNote } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 
 const TIME_ZONE = "Australia/Adelaide";
 
@@ -127,7 +129,7 @@ export default async function CustomersPage({
             {tr(locale, "Review each customer's complete appointment history.", "查看每位客人的完整预约记录。")}
           </p>
         </div>
-        <form className="flex w-full max-w-md gap-2" action="/admin/customers">
+        <AutoFilterForm className="flex w-full max-w-md gap-2" action="/admin/customers">
           <input
             name="q"
             defaultValue={q}
@@ -137,7 +139,7 @@ export default async function CustomersPage({
           <button className="rounded-xl bg-brown-900 px-5 py-3 text-sm text-cream-50">
             {tr(locale, "Search", "搜索")}
           </button>
-        </form>
+        </AutoFilterForm>
       </div>
 
       {error ? (
@@ -188,11 +190,11 @@ export default async function CustomersPage({
                       <td className="py-4 pr-4">{one(booking.therapists)?.display_name || "—"}</td>
                       <td className="py-4 pr-4">{paymentLabels(booking, locale)}</td>
                       <td className="w-72 py-3 pr-5">
-                        <form action={updateCustomerBookingNote} className="flex gap-2">
+                        <EnterSubmitForm action={updateCustomerBookingNote} saveOnBlur className="flex gap-2">
                           <input type="hidden" name="booking_id" value={booking.id} />
                           <input name="notes" defaultValue={booking.notes} placeholder={tr(locale, "Add note", "输入备注")} maxLength={2000} className="min-w-0 flex-1 rounded-lg border border-sand-200 bg-white px-3 py-2 text-sm outline-none focus:border-gold-dark" />
                           <SubmitButton pendingLabel="…" className="rounded-lg bg-brown-900 px-3 py-2 text-xs text-white">{tr(locale, "Save", "保存")}</SubmitButton>
-                        </form>
+                        </EnterSubmitForm>
                       </td>
                     </tr>
                   ))}

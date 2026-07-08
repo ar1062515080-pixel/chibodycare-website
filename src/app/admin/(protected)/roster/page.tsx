@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { removeRoster, saveRoster } from "@/app/admin/actions";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 
 export default async function RosterPage({ searchParams }: { searchParams: Promise<{ date?: string; location?: string }> }) {
   const params = await searchParams;
@@ -23,11 +24,11 @@ export default async function RosterPage({ searchParams }: { searchParams: Promi
   return <div>
     <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Daily roster", "每日排班")}</p>
     <h1 className="mt-2 font-serif text-4xl text-brown-900">{tr(locale, "Who is working?", "当天谁上班？")}</h1>
-    <form className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
+    <AutoFilterForm className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
       <input type="date" name="date" defaultValue={date} className="rounded-xl border border-sand-200 px-3 py-2" />
       <select name="location" defaultValue={locationId} className="min-w-60 rounded-xl border border-sand-200 px-3 py-2">{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select>
       <SubmitButton pendingLabel={tr(locale, "Loading…", "正在加载…")} className="rounded-full bg-brown-900 px-5 py-2 text-sm text-cream-50">{tr(locale, "View roster", "查看排班")}</SubmitButton>
-    </form>
+    </AutoFilterForm>
     <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_22rem]">
       <div className="space-y-3">
         {rosters.length ? rosters.map((roster) => {

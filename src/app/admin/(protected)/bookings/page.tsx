@@ -1,6 +1,8 @@
 import { BookingCalendar, type CalendarBooking, type CalendarStatus, type CalendarTherapist } from "@/components/admin/booking-calendar";
 import { cancelBookingCalendar, removeGiftVoucherSale, saveDailyStoreRecord, saveGiftVoucherSale, updateBookingCalendar } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
+import { AutoFilterForm } from "@/components/admin/auto-filter-form";
+import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -106,11 +108,11 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
     <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Bookings", "预约管理")}</p>
     <div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="font-serif text-4xl text-brown-900">{tr(locale, "Daily appointment calendar", "每日预约日历")}</h1><p className="mt-1 text-sm text-brown-700/65">{selectedLocation} · {new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-AU", { dateStyle: "full", timeZone: TIME_ZONE }).format(new Date(`${date}T12:00:00Z`))}</p></div><p className="max-w-xl text-sm text-brown-700/65">{tr(locale, "Appointments, payments and daily reconciliation follow the store workbook in one place.", "预约、收款与每日对账按照门店工作簿集中在同一页面。")}</p></div>
 
-    <form className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
+    <AutoFilterForm className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
       <label className="text-xs font-medium text-brown-700">{tr(locale, "Date", "日期")}<input type="date" name="date" defaultValue={date} className="mt-1 block rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
       <label className="min-w-60 flex-1 text-xs font-medium text-brown-700">{tr(locale, "Studio", "门店")}<select name="location" defaultValue={locationId} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm">{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
       <SubmitButton pendingLabel={tr(locale, "Loading…", "正在加载…")} className="self-end rounded-full bg-brown-900 px-5 py-2.5 text-sm text-cream-50">{tr(locale, "View day", "查看当日")}</SubmitButton>
-    </form>
+    </AutoFilterForm>
 
     {therapists.length ? <div className="mt-6"><BookingCalendar therapists={therapists} initialBookings={bookings} startMinute={startMinute} endMinute={endMinute} locale={locale} updateAction={updateBookingCalendar} cancelAction={cancelBookingCalendar} /></div> : <div className="mt-6 rounded-2xl border border-dashed border-sand-200 bg-cream-50 p-10 text-center"><p className="font-serif text-2xl">{tr(locale, "No therapists rostered", "当天没有按摩师排班")}</p><p className="mt-2 text-sm text-brown-700/60">{tr(locale, "Add therapists to the daily roster to build this calendar.", "请先在每日排班中添加按摩师，日历才会显示对应列。")}</p></div>}
 
@@ -123,7 +125,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <div className="overflow-hidden rounded-2xl border border-sand-200"><table className="w-full text-sm"><thead className="bg-sand-50 text-left text-xs text-brown-700/60"><tr><th className="px-4 py-3">{tr(locale, "Payment", "收款方式")}</th><th className="px-4 py-3 text-right">{tr(locale, "Treatments", "预约项目")}</th><th className="px-4 py-3 text-right">{tr(locale, "Vouchers", "礼券销售")}</th><th className="px-4 py-3 text-right">{tr(locale, "Total", "合计")}</th></tr></thead><tbody>{(["card", "hicaps", "cash", "voucher", "waived"] as const).map((key) => <tr key={key} className="border-t border-sand-100"><td className="px-4 py-3">{{ card: tr(locale, "Card", "刷卡"), hicaps: "HICAPS", cash: tr(locale, "Cash", "现金"), voucher: tr(locale, "Gift voucher", "礼券"), waived: tr(locale, "Free / waived", "免费 / 减免") }[key]}</td><td className="px-4 py-3 text-right">{formatMoney(bookingPayment[key])}</td><td className="px-4 py-3 text-right">{formatMoney(voucherPayment[key])}</td><td className="px-4 py-3 text-right font-medium">{formatMoney(bookingPayment[key] + voucherPayment[key])}</td></tr>)}</tbody></table></div>
         <div className="rounded-2xl border border-sand-200 p-4"><h3 className="font-serif text-xl">{tr(locale, "Treatment duration", "项目时长")}</h3><div className="mt-4 grid grid-cols-2 gap-3">{[[tr(locale, "Relaxation massage", "放松按摩"), duration.relaxation], [tr(locale, "Other treatments", "其他项目"), duration.regular], [tr(locale, "Foot care", "足疗"), duration.foot], [tr(locale, "Booked total", "预约总时长"), duration.booked]].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-brown-700/55">{label}</p><p className="mt-1 text-lg font-semibold">{value} min</p></div>)}</div></div>
       </div>
-      <form action={saveDailyStoreRecord} className="mt-5 grid gap-4 rounded-2xl border border-sand-200 bg-sand-50/50 p-4 md:grid-cols-2 xl:grid-cols-6">
+      <EnterSubmitForm action={saveDailyStoreRecord} saveOnBlur className="mt-5 grid gap-4 rounded-2xl border border-sand-200 bg-sand-50/50 p-4 md:grid-cols-2 xl:grid-cols-6">
         <input type="hidden" name="location_id" value={locationId} /><input type="hidden" name="record_date" value={date} />
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Opening cash", "开盘现金")}<input type="number" min="0" step="0.01" name="opening_cash" defaultValue={dollars(daily.opening_cash_cents)} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Promotion / discount", "促销 / 折扣")}<input type="number" min="0" step="0.01" name="promotion" defaultValue={dollars(daily.promotion_cents)} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
@@ -131,7 +133,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <fieldset className="grid grid-cols-2 gap-2 xl:col-span-2"><legend className="mb-1 text-xs font-medium text-brown-700">{tr(locale, "Cash expense", "现金支出")}</legend><input aria-label={tr(locale, "Cash expense amount", "现金支出金额")} type="number" min="0" step="0.01" name="cash_expense" defaultValue={dollars(daily.cash_expense_cents)} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /><input aria-label={tr(locale, "Cash expense item", "现金支出项目")} name="cash_expense_item" defaultValue={dailyNotes.cashExpenseItem} placeholder={tr(locale, "Expense item", "支出项目")} className="block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></fieldset>
         <label className="text-xs font-medium text-brown-700 md:col-span-2 xl:col-span-5">{tr(locale, "Notes", "备注")}<textarea name="notes" defaultValue={dailyNotes.notes} rows={2} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <SubmitButton pendingLabel={tr(locale, "Saving…", "保存中…")} className="self-end rounded-xl bg-brown-900 px-5 py-2.5 text-sm text-white">{tr(locale, "Save daily record", "保存经营记录")}</SubmitButton>
-      </form>
+      </EnterSubmitForm>
     </section>
 
     {false ? <section className="mt-8 rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm md:p-7">

@@ -2,6 +2,7 @@ import { saveLocation } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { dayLabels, getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -16,7 +17,7 @@ export default async function LocationsPage() {
     <h1 className="mt-2 font-serif text-4xl text-brown-900">{tr(locale, "Studios & hours", "门店与营业时间")}</h1>
     <div className="mt-8 space-y-5">{locations.map((location) => {
       const hours = new Map((location.location_opening_hours as Array<{ day_of_week: string; open_time: string; close_time: string }> | null)?.map((row) => [row.day_of_week, row]) ?? []);
-      return <form action={saveLocation} key={location.id} className="rounded-3xl border border-sand-200 bg-cream-50 p-6 shadow-sm">
+      return <EnterSubmitForm action={saveLocation} saveOnBlur key={location.id} className="rounded-3xl border border-sand-200 bg-cream-50 p-6 shadow-sm">
         <input type="hidden" name="id" value={location.id} />
         <div className="grid gap-4 md:grid-cols-3">
           <label className="text-sm">{tr(locale, "Location name", "门店名称")}<input name="name" defaultValue={location.name} required className="mt-1 w-full rounded-xl border border-sand-200 px-3 py-2" /></label>
@@ -29,7 +30,7 @@ export default async function LocationsPage() {
           return <div key={day} className="rounded-xl border border-sand-100 p-3"><p className="text-xs font-medium">{dayLabel}</p><div className="mt-2 flex gap-2"><input aria-label={`${dayLabel} ${tr(locale, "open", "开门")}`} name={`${day}_open`} type="time" defaultValue={entry ? String(entry.open_time).slice(0,5) : ""} className="min-w-0 flex-1 rounded-lg border border-sand-200 px-2 py-1 text-xs" /><input aria-label={`${dayLabel} ${tr(locale, "close", "关门")}`} name={`${day}_close`} type="time" defaultValue={entry ? String(entry.close_time).slice(0,5) : ""} className="min-w-0 flex-1 rounded-lg border border-sand-200 px-2 py-1 text-xs" /></div></div>;
         })}</div></details>
         <SubmitButton pendingLabel={tr(locale, "Saving…", "正在保存…")} className="mt-5 rounded-full bg-sage-700 px-5 py-2.5 text-sm font-medium text-cream-50">{tr(locale, "Save location", "保存门店")}</SubmitButton>
-      </form>;
+      </EnterSubmitForm>;
     })}</div>
   </div>;
 }

@@ -10,5 +10,5 @@ export function ConditionalSiteFooter() {
 
   if (pagesWithoutFooter.has(pathname)) return null;
 
-  return <SiteFooter />;
+  return <SiteFooter flush={pathname === "/" || pathname.startsWith("/admin")} />;
 }

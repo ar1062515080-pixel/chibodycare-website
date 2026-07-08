@@ -4,12 +4,12 @@ import { navLinks } from "@/lib/nav";
 import { business } from "@/lib/business";
 import { categories } from "@/lib/services";
 
-export function SiteFooter() {
+export function SiteFooter({ flush = false }: { flush?: boolean }) {
   const year = new Date().getFullYear();
   const topCategories = categories.slice(0, 5);
 
   return (
-    <footer className="mt-8 border-t border-sand-200 bg-brown-900 text-cream-100">
+    <footer className={`${flush ? "mt-0" : "mt-8"} border-t border-sand-200 bg-brown-900 text-cream-100`}>
       <div className="container-page grid gap-12 py-16 md:grid-cols-3">
         <div>
           <Link href="/" aria-label="Chi Body Care home" className="inline-flex rounded-full bg-cream-50/95 p-1 shadow-sm">

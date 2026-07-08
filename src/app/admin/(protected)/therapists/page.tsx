@@ -42,7 +42,7 @@ export default async function TherapistsPage({ searchParams }: { searchParams: P
   const form = (therapist?: Therapist) => {
     const assigned = new Set(therapist?.therapist_services?.map((row) => row.service_id) ?? []);
     return (
-      <EnterSubmitForm action={saveTherapist} className="rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm">
+      <EnterSubmitForm action={saveTherapist} saveOnBlur={Boolean(therapist)} className="rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm">
         <input type="hidden" name="id" value={therapist?.id || ""} />
         <input type="hidden" name="location_id" value={locationId} />
         <div className="grid gap-3 sm:grid-cols-2">
