@@ -19,22 +19,20 @@ export default function ServicesPage() {
       className="relative bg-cream-100 bg-cover bg-center bg-fixed"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(250, 247, 240, 0.48), rgba(250, 247, 240, 0.58)), url('/images/studio/botanical-wall-services.png')",
+          "linear-gradient(rgba(250, 247, 240, 0.6), rgba(250, 247, 240, 0.6)), url('/images/studio/botanical-wall-services.png')",
       }}
     >
       <PageHero
         eyebrow="Treatment Menu"
         title="Treatments for body & mind"
         description="Browse our full menu of restorative treatments. Every session can be booked online in minutes."
-        imageSrc="/images/studio/botanical-wall-services.png"
-        imageAlt="Chi Body Care botanical wall"
       >
         <Button href="/book" variant="primary" size="md">
           Start booking
         </Button>
       </PageHero>
 
-      <div className="container-page pb-16 pt-12 sm:pb-20 sm:pt-16">
+      <div className="container-page pb-10 pt-12 sm:pb-16 sm:pt-16">
         <TreatmentMenu groups={grouped} />
       </div>
     </main>

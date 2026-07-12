@@ -15,25 +15,25 @@ export const metadata: Metadata = {
 
 const values = [
   {
-    icon: "01",
+    icon: "🌿",
     title: "Balance",
     description:
       "We treat the whole person — body, mind and energy — to restore lasting balance.",
   },
   {
-    icon: "02",
+    icon: "🤝",
     title: "Care",
     description:
       "Every guest is welcomed with warmth, respect and genuine attention to their needs.",
   },
   {
-    icon: "03",
+    icon: "✨",
     title: "Excellence",
     description:
-      "Skilled practitioners and beautiful spaces, delivered with consistency.",
+      "Skilled, accredited practitioners and beautiful spaces, delivered consistently.",
   },
   {
-    icon: "04",
+    icon: "🍵",
     title: "Tradition",
     description:
       "We honour the time-tested wisdom of traditional Chinese medicine in everything we do.",
@@ -46,19 +46,18 @@ export default function AboutPage() {
       className="relative bg-cream-100 bg-cover bg-center bg-fixed"
       style={{
         backgroundImage:
-          "linear-gradient(rgba(250, 247, 240, 0.5), rgba(250, 247, 240, 0.62)), url('/images/studio/about-massage-background.png')",
+          "linear-gradient(rgba(250, 247, 240, 0.6), rgba(250, 247, 240, 0.6)), url('/images/studio/about-massage-background.png')",
       }}
     >
       <PageHero
         eyebrow="Our Story"
         title="Where ancient wisdom meets modern care"
         description={`${business.name} was founded on a simple belief — that everyone deserves a place to slow down, restore and reconnect with their wellbeing.`}
-        imageSrc="/images/studio/about-massage-background.png"
-        imageAlt="Massage treatment at Chi Body Care"
       />
 
+      {/* Brand story */}
       <section className="container-page py-16">
-        <div className="grid items-center gap-12 rounded-[2rem] border border-sand-200/80 bg-cream-50/92 p-6 shadow-[0_24px_70px_rgba(39,30,23,.12)] backdrop-blur-md sm:p-10 lg:grid-cols-2">
+        <div className="grid items-center gap-12 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 p-6 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:p-10 lg:grid-cols-2">
           <div className="relative">
             <div className="relative aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 shadow-lg">
               <Image src="/images/studio/studio-lounge.webp" alt="Chi Body Care studio lounge" fill sizes="(min-width:1024px) 45vw, 100vw" className="object-cover object-center" />
@@ -97,26 +96,26 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="bg-sage-800/95 py-16 text-cream-50 backdrop-blur-sm">
+      {/* Values */}
+      <section className="bg-sand-50/70 py-16 backdrop-blur-sm">
         <div className="container-page">
           <SectionHeading
             eyebrow="What we value"
             title="The principles behind every treatment"
-            className="[&_h2]:text-cream-50 [&_p]:text-gold-light"
           />
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value) => (
               <div
                 key={value.title}
-                className="rounded-3xl border border-cream-50/10 bg-cream-50/8 p-6 text-center shadow-sm backdrop-blur-sm"
+                className="rounded-3xl border border-sand-100 bg-cream-50 p-6 text-center shadow-sm"
               >
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-light/35 bg-brown-900/20 text-sm tracking-[0.2em] text-gold-light">
+                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-sage-50 text-2xl">
                   {value.icon}
                 </span>
-                <h3 className="mt-4 font-serif text-lg font-medium text-cream-50">
+                <h3 className="mt-4 font-serif text-lg font-medium text-brown-900">
                   {value.title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-cream-100/70">
+                <p className="mt-2 text-sm leading-relaxed text-brown-700/80">
                   {value.description}
                 </p>
               </div>
@@ -125,7 +124,8 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="container-page mb-16 mt-16 rounded-[2rem] border border-sand-200/80 bg-cream-50/92 py-16 shadow-[0_24px_70px_rgba(39,30,23,.12)] backdrop-blur-md sm:mb-20">
+      {/* Therapist profiles */}
+      <section className="container-page mb-10 mt-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:mb-16">
         <SectionHeading
           eyebrow="Our Practitioners"
           title="Meet the team caring for you"

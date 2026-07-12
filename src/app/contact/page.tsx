@@ -21,19 +21,17 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="bg-cream-100">
+    <>
       <PageHero
         eyebrow="Contact"
         title="We'd love to hear from you"
         description="Questions about a treatment or booking? Reach out, or visit one of our 13 studios across Adelaide."
-        imageSrc="/images/studio/reception-counter.webp"
-        imageAlt="Chi Body Care reception counter"
       />
 
-      <section className="container-page pb-16 pt-16 sm:pb-20">
+      <section className="container-page pb-10 pt-16 sm:pb-16">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Contact form */}
-          <div className="rounded-[2rem] border border-sand-200/80 bg-cream-50 p-6 shadow-[0_24px_70px_rgba(39,30,23,.08)] sm:p-9">
+          <div>
             <h2 className="font-serif text-2xl font-medium text-brown-900">
               Send us a message
             </h2>
@@ -46,10 +44,10 @@ export default function ContactPage() {
           </div>
 
           {/* Studio details */}
-          <div className="rounded-[2rem] border border-sand-200/80 bg-cream-50 p-6 shadow-[0_24px_70px_rgba(39,30,23,.08)] sm:p-9">
+          <div>
             <h2 className="font-serif text-2xl font-medium text-brown-900">Our studios</h2>
             <p className="mt-2 text-sm leading-relaxed text-brown-700/70">Select a studio to view its phone number and opening hours.</p>
-            <div className="mt-6 overflow-hidden rounded-3xl border border-sand-200 bg-white/55 shadow-sm">
+            <div className="mt-6 overflow-hidden rounded-3xl border border-sand-200 bg-cream-50/90 shadow-sm">
               {locations.map((location) => (
                 <details key={location.id} className="group border-b border-sand-100 last:border-b-0">
                   <summary className="flex list-none items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-sand-50/70">
@@ -68,6 +66,6 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

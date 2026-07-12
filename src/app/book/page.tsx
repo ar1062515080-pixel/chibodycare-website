@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { BookingExperience } from "@/components/booking/booking-experience";
 import { getServiceById } from "@/lib/services";
 import { locations } from "@/lib/business";
@@ -51,24 +50,15 @@ export default async function BookPage({
 
   return (
     <div className="bg-sand-50/40">
-      <div className="relative overflow-hidden border-b border-gold-dark/15 bg-brown-900 text-cream-50">
-        <Image
-          src="/images/studio/signage-closeup.webp"
-          alt="Chi Body Care gold signage"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center opacity-[.72] saturate-[.9] contrast-[.9] brightness-[.88]"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(36,43,36,.92),rgba(36,43,36,.72),rgba(36,43,36,.36))]" />
-        <div className="container-page relative py-12 text-center sm:py-16">
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold-light">
+      <div className="border-b border-sand-100 bg-cream-50">
+        <div className="container-page py-10 text-center sm:py-12">
+          <p className="mb-2 text-xs font-medium uppercase tracking-[0.22em] text-gold-dark">
             Online Booking
           </p>
-          <h1 className="font-serif text-4xl font-medium text-cream-50 sm:text-5xl">
+          <h1 className="font-serif text-3xl font-medium text-brown-900 sm:text-4xl">
             Book your treatment
           </h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-cream-100/80">
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brown-700/80">
             Choose your studio, preferred professional, treatment and a time
             that suits you.
           </p>
