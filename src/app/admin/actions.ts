@@ -185,6 +185,68 @@ export async function updateBookingStatus(formData: FormData) {
   revalidatePath("/admin");
 }
 
+function adelaideLocalToUtc(date: string, time: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  const utcGuess = new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Adelaide",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(utcGuess);
+  const value = (type: string) => Number(parts.find((part) => part.type === type)?.value);
+  const asAdelaide = Date.UTC(value("year"), value("month") - 1, value("day"), value("hour"), value("minute"), 0);
+  return new Date(utcGuess.getTime() - (asAdelaide - utcGuess.getTime()));
+}
+
+export async function createAdminBooking(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const customerName = String(formData.get("customer_name") ?? "").trim();
+  const customerPhone = String(formData.get("customer_phone") ?? "").trim();
+  const customerEmail = String(formData.get("customer_email") ?? "").trim().toLowerCase();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const locationId = String(formData.get("location_id") ?? "");
+  const serviceId = String(formData.get("service_id") ?? "");
+  const therapistValue = String(formData.get("therapist_id") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const time = String(formData.get("start_time") ?? "");
+
+  if (!customerName || !customerPhone || !locationId || !serviceId || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    throw new Error("Please complete the appointment details.");
+  }
+
+  const startAt = adelaideLocalToUtc(date, time);
+  const { error } = await supabase.rpc("create_booking", {
+    p_customer_name: customerName,
+    p_customer_phone: customerPhone,
+    p_customer_email: customerEmail,
+    p_notes: notes,
+    p_location_id: locationId,
+    p_service_id: serviceId,
+    p_therapist_id: therapistValue && therapistValue !== "any" ? therapistValue : null,
+    p_start_at: startAt.toISOString(),
+  });
+
+  if (error) {
+    const messageMap: Record<string, string> = {
+      BOOKING_MUST_BE_IN_FUTURE: "预约时间必须晚于当前时间。",
+      SLOT_UNAVAILABLE: "这个时间已被占用，或该按摩师没有排班。",
+      NO_ROSTER: "该日期没有可用排班。",
+      SERVICE_NOT_AVAILABLE: "所选项目当前不可预约。",
+      INVALID_CUSTOMER_NAME: "请输入正确的客户姓名。",
+      INVALID_CUSTOMER_PHONE: "请输入正确的客户电话。",
+      INVALID_CUSTOMER_EMAIL: "请输入正确的邮箱，或留空。",
+    };
+    throw new Error(messageMap[error.message] ?? error.message);
+  }
+
+  revalidatePath("/admin/bookings");
+}
+
 export type BookingCalendarStatus = "unpaid" | "paid" | "no_show";
 export type BookingPaymentAmounts = {
   cardAmount: number;

@@ -1,5 +1,5 @@
 import { BookingCalendar, type CalendarBooking, type CalendarStatus, type CalendarTherapist } from "@/components/admin/booking-calendar";
-import { cancelBookingCalendar, removeGiftVoucherSale, saveDailyStoreRecord, saveGiftVoucherSale, updateBookingCalendar } from "@/app/admin/actions";
+import { cancelBookingCalendar, createAdminBooking, removeGiftVoucherSale, saveDailyStoreRecord, saveGiftVoucherSale, updateBookingCalendar } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
@@ -9,7 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const TIME_ZONE = "Australia/Adelaide";
 
 type TherapistRelation = { id: string; display_name: string };
-type ServiceRelation = { name?: string; category?: string; price_cents?: number };
+type ServiceRelation = { id?: string; name?: string; category?: string; duration_minutes?: number; price_cents?: number };
 type BookingRow = {
   id: string; reference: string; customer_name: string; customer_phone: string; start_at: string; end_at: string;
   status: string; calendar_status: CalendarStatus | null; is_any_professional: boolean; therapist_id: string;
@@ -45,17 +45,19 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const { data: locationRows } = await supabase.from("locations").select("id,name").eq("active", true).order("name");
   const locations = locationRows ?? [];
   const locationId = params.location || locations[0]?.id || "";
-  const [rostersResult, bookingsResult, dailyResult, vouchersResult] = await Promise.all([
+  const [rostersResult, bookingsResult, dailyResult, vouchersResult, servicesResult] = await Promise.all([
     supabase.from("daily_rosters").select("id,therapist_id,start_time,end_time,therapists(id,display_name)").eq("date", date).eq("location_id", locationId).eq("active", true).order("start_time"),
     supabase.from("bookings").select("id,reference,customer_name,customer_phone,start_at,end_at,status,calendar_status,is_any_professional,therapist_id,card_amount_cents,insurance_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,voucher_number,services(name,category,price_cents)").eq("location_id", locationId).neq("status", "cancelled").gte("start_at", `${shiftDate(date, -1)}T00:00:00Z`).lt("start_at", `${shiftDate(date, 1)}T23:59:59Z`).order("start_at"),
     supabase.from("daily_store_records").select("opening_cash_cents,promotion_cents,other_income_cents,cash_expense_cents,notes").eq("location_id", locationId).eq("record_date", date).maybeSingle(),
     supabase.from("gift_voucher_sales").select("id,voucher_number,face_value_cents,card_amount_cents,hicaps_amount_cents,cash_amount_cents,voucher_amount_cents,waived_amount_cents,notes").eq("location_id", locationId).eq("sale_date", date).order("created_at"),
+    supabase.from("services").select("id,name,category,duration_minutes,price_cents").eq("active", true).order("category").order("duration_minutes"),
   ]);
   const rosterRows = rostersResult.data ?? [];
   const rawBookings = ((bookingsResult.data ?? []) as unknown as BookingRow[]).filter((booking) => localDate(booking.start_at) === date);
   const daily = (dailyResult.data as DailyRecord | null) ?? { opening_cash_cents: 0, promotion_cents: 0, other_income_cents: 0, cash_expense_cents: 0, notes: "" };
   const dailyNotes = parseDailyNotes(daily.notes);
   const vouchers = (vouchersResult.data ?? []) as VoucherSale[];
+  const services = (servicesResult.data ?? []) as ServiceRelation[];
 
   const therapistMap = new Map<string, CalendarTherapist>();
   for (const roster of rosterRows) {
@@ -114,6 +116,28 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
       <label className="min-w-60 flex-1 text-xs font-medium text-brown-700">{tr(locale, "Studio", "门店")}<select name="location" defaultValue={locationId} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm">{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
       <SubmitButton pendingLabel={tr(locale, "Loading…", "正在加载…")} className="self-end rounded-full bg-brown-900 px-5 py-2.5 text-sm text-cream-50">{tr(locale, "View day", "查看当日")}</SubmitButton>
     </AutoFilterForm>
+
+    <section className="mt-5 rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "New appointment", "新增预约")}</p>
+          <h2 className="mt-1 font-serif text-2xl text-brown-900">{tr(locale, "Add a booking", "添加客户预约")}</h2>
+        </div>
+        <p className="text-xs text-brown-700/55">{tr(locale, "Uses the same roster and double-booking checks.", "使用同一套排班和防撞单规则。")}</p>
+      </div>
+      <form action={createAdminBooking} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+        <input type="hidden" name="location_id" value={locationId} />
+        <input type="hidden" name="date" value={date} />
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Customer name", "客户姓名")}<input required name="customer_name" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Phone", "电话")}<input required name="customer_phone" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Email optional", "邮箱（可选）")}<input type="email" name="customer_email" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Start time", "开始时间")}<input required type="time" step={900} name="start_time" defaultValue="09:00" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Therapist", "按摩师")}<select name="therapist_id" defaultValue="any" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm"><option value="any">{tr(locale, "Any professional", "任意按摩师")}</option>{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Treatment", "项目")}<select required name="service_id" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm"><option value="">{tr(locale, "Select treatment", "选择项目")}</option>{services.map((service) => <option key={service.id} value={service.id}>{service.category} · {service.name} · {service.duration_minutes} min · {formatMoney(cents(service.price_cents))}</option>)}</select></label>
+        <label className="text-xs font-medium text-brown-700 md:col-span-2 xl:col-span-5">{tr(locale, "Notes", "备注")}<input name="notes" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <SubmitButton pendingLabel={tr(locale, "Adding…", "添加中…")} className="self-end rounded-xl bg-brown-900 px-5 py-2.5 text-sm text-cream-50">{tr(locale, "Add booking", "添加预约")}</SubmitButton>
+      </form>
+    </section>
 
     {therapists.length ? <div className="mt-6"><BookingCalendar therapists={therapists} initialBookings={bookings} startMinute={startMinute} endMinute={endMinute} locale={locale} updateAction={updateBookingCalendar} cancelAction={cancelBookingCalendar} /></div> : <div className="mt-6 rounded-2xl border border-dashed border-sand-200 bg-cream-50 p-10 text-center"><p className="font-serif text-2xl">{tr(locale, "No therapists rostered", "当天没有按摩师排班")}</p><p className="mt-2 text-sm text-brown-700/60">{tr(locale, "Add therapists to the daily roster to build this calendar.", "请先在每日排班中添加按摩师，日历才会显示对应列。")}</p></div>}
 
