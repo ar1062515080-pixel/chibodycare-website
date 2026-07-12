@@ -55,9 +55,11 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
+    overflow-x: hidden;
   }
 
   body {
+    overflow-x: hidden;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -100,6 +102,13 @@
     margin-inline: auto;
     max-width: 80rem;
     padding-inline: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .container-page {
+      max-width: 100%;
+      padding-inline: 1rem;
+    }
   }
 
   @media (min-width: 768px) {

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Jost } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
@@ -44,6 +44,12 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,9 +60,9 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-cream-100 text-brown-900">
+      <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-cream-100 text-brown-900">
         <SiteHeader />
-        <main className="flex-1">{children}</main>
+        <main className="min-w-0 flex-1">{children}</main>
         <ConditionalSiteFooter />
       </body>
     </html>

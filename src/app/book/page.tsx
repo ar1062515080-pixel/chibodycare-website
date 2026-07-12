@@ -49,7 +49,7 @@ export default async function BookPage({
   }
 
   return (
-    <div className="overflow-x-hidden bg-sand-50/40">
+    <div className="w-full max-w-full overflow-x-hidden bg-sand-50/40">
       <div className="border-b border-sand-100 bg-cream-50">
         <div className="container-page py-10 text-center sm:py-12">
           <p className="mb-2 text-xs font-medium uppercase tracking-[0.22em] text-gold-dark">
