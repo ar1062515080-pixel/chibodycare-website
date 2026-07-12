@@ -93,7 +93,8 @@ export function StepContact({ showErrors }: { showErrors: boolean }) {
           </label>
           <input
             id="email"
-            type="email"
+            type="text"
+            inputMode="email"
             value={contact.email}
             onChange={(event) =>
               dispatch({
