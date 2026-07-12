@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useRef, useState } from "react";
 import { updateRosterHours } from "@/app/admin/actions";
@@ -218,14 +218,14 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     const isDragging = drag?.id === booking.id;
     const isOpen = openId === booking.id && popoverDraft?.id === booking.id;
     const originTherapist = isDragging ? drag.original.therapistId : booking.therapistId;
-    const horizontalShift = (therapists.findIndex((therapist) => therapist.id === booking.therapistId) - therapists.findIndex((therapist) => therapist.id === originTherapist)) * 224;
+    const horizontalIndexShift = therapists.findIndex((therapist) => therapist.id === booking.therapistId) - therapists.findIndex((therapist) => therapist.id === originTherapist);
     const draftPayment = isOpen ? parsePaymentDraft(popoverDraft.payment) : null;
     const draftPaymentTotal = draftPayment ? paymentTotal(draftPayment) : 0;
     const amountMismatch = Boolean(draftPayment) && draftPaymentTotal > 0 && Math.abs(draftPaymentTotal - booking.servicePrice) > 0.009;
     return <article
       key={booking.id}
       className={`absolute inset-x-1.5 touch-none select-none rounded-lg border-l-4 p-2 shadow-sm transition-shadow ${cardClass(booking.calendarStatus)} ${isDragging ? "z-40 opacity-70 shadow-xl ring-2 ring-gold" : isOpen ? "z-30 shadow-lg" : "z-10 hover:shadow-md"}`}
-      style={{ top, height, transform: isDragging ? `translateX(${horizontalShift}px)` : undefined }}
+      style={{ top, height, transform: isDragging ? `translateX(calc(${horizontalIndexShift} * (100% + 0.75rem)))` : undefined }}
       onPointerDown={(event) => beginPointer(event, booking, "move")}
       onPointerMove={movePointer}
       onPointerUp={endPointer}
@@ -275,8 +275,8 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
 
   return <>
     {error ? <div role="alert" className="mb-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</div> : null}
-    <div className="hidden overflow-x-auto rounded-2xl border border-sand-200 bg-cream-50 shadow-sm md:block">
-      <div className="grid min-w-max" style={{ gridTemplateColumns: `5rem repeat(${therapists.length}, 14rem)` }}>
+    <div className="hidden overflow-x-hidden rounded-2xl border border-sand-200 bg-cream-50 shadow-sm md:block">
+      <div className="grid w-full" style={{ gridTemplateColumns: `4.5rem repeat(${therapists.length}, minmax(0, 1fr))` }}>
         <div className="sticky left-0 top-0 z-30 border-b border-r border-sand-200 bg-sand-50 p-3 text-xs font-medium uppercase tracking-wider text-brown-700/60">{t.time}</div>
         {therapists.map((therapist) => <RosterHeader key={therapist.id} therapist={therapist} locale={locale} />)}
         <div className="sticky left-0 z-20 border-r border-sand-200 bg-cream-50">{slots.map((slot) => <div key={slot} className="border-b border-sand-100 px-3 pt-1 text-right text-[11px] text-brown-700/55" style={{ height: ROW_HEIGHT }}>{timeLabel(slot)}</div>)}</div>
@@ -298,13 +298,29 @@ function RosterHeader({ therapist, locale }: { therapist: CalendarTherapist; loc
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   async function save() {
-    setSaving(true); setMessage("");
-    const formData = new FormData(); formData.set("roster_id", therapist.rosterId); formData.set("start_time", startTime); formData.set("end_time", endTime);
-    const result = await updateRosterHours(formData); setMessage(result.ok ? (locale === "zh" ? "已保存" : "Saved") : result.error); setSaving(false);
+    setSaving(true);
+    setMessage("");
+    const formData = new FormData();
+    formData.set("roster_id", therapist.rosterId);
+    formData.set("start_time", startTime);
+    formData.set("end_time", endTime);
+    const result = await updateRosterHours(formData);
+    setMessage(result.ok ? (locale === "zh" ? "已保存" : "Saved") : result.error);
+    setSaving(false);
   }
-  return <div className="sticky top-0 z-20 border-b border-r border-sand-200 bg-sand-50 px-3 py-2"><div className="flex items-center justify-between gap-2"><p className="font-serif text-lg">{therapist.displayName}</p><button type="button" disabled={saving} onClick={() => void save()} className="text-[10px] font-medium text-sage-700 disabled:opacity-50">{saving ? "…" : locale === "zh" ? "保存" : "Save"}</button></div><div className="mt-1 flex items-center gap-1 text-[10px] text-brown-700/60"><input aria-label={`${therapist.displayName} ${locale === "zh" ? "到店时间" : "arrival time"}`} type="time" step={300} value={startTime} onChange={(event) => setStartTime(event.target.value)} className="w-[70px] rounded border border-sand-200 bg-white px-1 py-0.5" /><span>–</span><input aria-label={`${therapist.displayName} ${locale === "zh" ? "离店时间" : "departure time"}`} type="time" step={300} value={endTime} onChange={(event) => setEndTime(event.target.value)} className="w-[70px] rounded border border-sand-200 bg-white px-1 py-0.5" /></div>{message ? <p className="mt-0.5 truncate text-[9px] text-sage-700">{message}</p> : null}</div>;
+  return <div className="sticky top-0 z-20 min-w-0 border-b border-r border-sand-200 bg-sand-50 px-2 py-2">
+    <div className="flex min-w-0 items-center justify-between gap-1">
+      <p className="min-w-0 truncate font-serif text-base leading-tight xl:text-lg">{therapist.displayName}</p>
+      <button type="button" disabled={saving} onClick={() => void save()} className="shrink-0 text-[10px] font-medium text-sage-700 disabled:opacity-50">{saving ? "…" : locale === "zh" ? "保存" : "Save"}</button>
+    </div>
+    <div className="mt-1 grid min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-1 text-[10px] text-brown-700/60">
+      <input aria-label={`${therapist.displayName} ${locale === "zh" ? "到店时间" : "arrival time"}`} type="time" step={300} value={startTime} onChange={(event) => setStartTime(event.target.value)} className="min-w-0 rounded border border-sand-200 bg-white px-1 py-0.5 text-[10px]" />
+      <span>–</span>
+      <input aria-label={`${therapist.displayName} ${locale === "zh" ? "离店时间" : "departure time"}`} type="time" step={300} value={endTime} onChange={(event) => setEndTime(event.target.value)} className="min-w-0 rounded border border-sand-200 bg-white px-1 py-0.5 text-[10px]" />
+    </div>
+    {message ? <p className="mt-0.5 truncate text-[9px] text-sage-700">{message}</p> : null}
+  </div>;
 }
-
 function MobileBooking({ booking, therapists, locale, saving, onSave, onCancel }: { booking: CalendarBooking; therapists: CalendarTherapist[]; locale: Locale; saving: boolean; onSave: (next: CalendarBooking, previous: CalendarBooking) => Promise<void>; onCancel: (booking: CalendarBooking) => Promise<void> }) {
   const t = labels[locale];
   const [draft, setDraft] = useState(booking);
