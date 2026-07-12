@@ -225,6 +225,70 @@ export async function createAdminBooking(formData: FormData) {
     throw new Error("Please complete the appointment details.");
   }
 
+  const adminStartAt = adelaideLocalToUtc(date, time);
+  if (adminStartAt <= new Date()) throw new Error("预约时间必须晚于当前时间。");
+
+  const { data: adminService, error: adminServiceError } = await supabase
+    .from("services")
+    .select("id,duration_minutes")
+    .eq("id", serviceId)
+    .eq("active", true)
+    .single();
+  if (adminServiceError || !adminService) throw new Error("所选项目当前不可预约。");
+
+  const adminEndAt = new Date(adminStartAt.getTime() + Number(adminService.duration_minutes) * 60000);
+  let adminRosterQuery = supabase
+    .from("daily_rosters")
+    .select("id,therapist_id,start_time,end_time")
+    .eq("date", date)
+    .eq("location_id", locationId)
+    .eq("active", true)
+    .order("start_time");
+  if (therapistValue && therapistValue !== "any") adminRosterQuery = adminRosterQuery.eq("therapist_id", therapistValue);
+  const { data: adminRosterRows, error: adminRosterError } = await adminRosterQuery;
+  if (adminRosterError) throw new Error(adminRosterError.message);
+
+  const adminStartMinute = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+  const adminEndMinute = adminStartMinute + Number(adminService.duration_minutes);
+  const adminMatchingRosters = (adminRosterRows ?? []).filter((roster) => {
+    const rosterStart = String(roster.start_time).slice(0, 5);
+    const rosterEnd = String(roster.end_time).slice(0, 5);
+    const rosterStartMinute = Number(rosterStart.slice(0, 2)) * 60 + Number(rosterStart.slice(3, 5));
+    const rosterEndMinute = Number(rosterEnd.slice(0, 2)) * 60 + Number(rosterEnd.slice(3, 5));
+    return adminStartMinute >= rosterStartMinute && adminEndMinute <= rosterEndMinute;
+  });
+  if (!adminMatchingRosters.length) throw new Error("这个时间没有可用排班。");
+
+  let adminLastInsertError: { message: string; code?: string } | null = null;
+  for (const roster of adminMatchingRosters) {
+    const reference = `CBC-${crypto.randomUUID().replaceAll("-", "").slice(0, 10).toUpperCase()}`;
+    const { error: insertError } = await supabase.from("bookings").insert({
+      reference,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      location_id: locationId,
+      service_id: serviceId,
+      therapist_id: roster.therapist_id,
+      daily_roster_id: roster.id,
+      start_at: adminStartAt.toISOString(),
+      end_at: adminEndAt.toISOString(),
+      status: "pending",
+      notes,
+      is_any_professional: !(therapistValue && therapistValue !== "any"),
+    });
+    if (!insertError) {
+      revalidatePath("/admin/bookings");
+      return;
+    }
+    adminLastInsertError = insertError;
+    if (therapistValue && therapistValue !== "any") break;
+    if (insertError.code !== "23P01" && insertError.code !== "23505") break;
+  }
+
+  if (adminLastInsertError?.code === "23P01") throw new Error("这个时间已被占用，请选择其他时间或按摩师。");
+  throw new Error(adminLastInsertError?.message ?? "无法添加预约，请检查时间和排班。");
+
   const startAt = adelaideLocalToUtc(date, time);
   const { error } = await supabase.rpc("create_booking", {
     p_customer_name: customerName,
@@ -247,7 +311,8 @@ export async function createAdminBooking(formData: FormData) {
       INVALID_CUSTOMER_PHONE: "请输入正确的客户电话。",
       INVALID_CUSTOMER_EMAIL: "请输入正确的邮箱，或留空。",
     };
-    throw new Error(messageMap[error.message] ?? error.message);
+    const rpcErrorMessage = error?.message ?? "Unable to create booking.";
+    throw new Error(messageMap[rpcErrorMessage] ?? rpcErrorMessage);
   }
 
   revalidatePath("/admin/bookings");
