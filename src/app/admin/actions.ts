@@ -138,12 +138,18 @@ export async function saveTherapistPayRate(formData: FormData) {
 
 export async function saveRoster(formData: FormData) {
   const { supabase } = await requireAdmin();
-  const serviceIds = formData.getAll("service_ids").map(String);
+  const therapistId = String(formData.get("therapist_id"));
+  const { data: defaultServices, error: serviceError } = await supabase
+    .from("therapist_services")
+    .select("service_id")
+    .eq("therapist_id", therapistId);
+  if (serviceError) throw new Error(serviceError.message);
+  const serviceIds = (defaultServices ?? []).map((service) => service.service_id);
   const { error } = await supabase.rpc("upsert_daily_roster", {
     p_roster_id: formData.get("id") ? String(formData.get("id")) : null,
     p_date: String(formData.get("date")),
     p_location_id: String(formData.get("location_id")),
-    p_therapist_id: String(formData.get("therapist_id")),
+    p_therapist_id: therapistId,
     p_start_time: String(formData.get("start_time")),
     p_end_time: String(formData.get("end_time")),
     p_active: formData.get("active") === "on",

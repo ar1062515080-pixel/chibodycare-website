@@ -12,13 +12,11 @@ export default async function RosterPage({ searchParams }: { searchParams: Promi
   const { data: locationRows } = await supabase.from("locations").select("id,name").eq("active", true).order("name");
   const locations = locationRows ?? [];
   const locationId = params.location || locations[0]?.id || "";
-  const [{ data: therapistRows }, { data: serviceRows }, { data: rosterRows }] = await Promise.all([
+  const [{ data: therapistRows }, { data: rosterRows }] = await Promise.all([
     supabase.from("therapists").select("id,display_name,internal_name").eq("active", true).order("display_name"),
-    supabase.from("services").select("id,name,category").eq("active", true).order("category").order("name"),
-    supabase.from("daily_rosters").select("id,date,start_time,end_time,active,therapists(display_name),roster_services(service_id)").eq("date", date).eq("location_id", locationId).order("start_time"),
+    supabase.from("daily_rosters").select("id,date,start_time,end_time,active,therapists(display_name)").eq("date", date).eq("location_id", locationId).order("start_time"),
   ]);
   const therapists = therapistRows ?? [];
-  const services = serviceRows ?? [];
   const rosters = rosterRows ?? [];
 
   return <div>
@@ -32,11 +30,9 @@ export default async function RosterPage({ searchParams }: { searchParams: Promi
     <div className="mt-8 grid gap-6 xl:grid-cols-[1fr_22rem]">
       <div className="space-y-3">
         {rosters.length ? rosters.map((roster) => {
-          const assignedCount = (roster.roster_services as Array<{ service_id: string }> | null)?.length || 0;
           return <div key={roster.id} className="rounded-2xl border border-sand-200 bg-cream-50 p-5"><div className="flex items-start justify-between gap-4"><div>
             <h2 className="font-serif text-xl">{(roster.therapists as { display_name?: string } | null)?.display_name || tr(locale, "Therapist", "治疗师")}</h2>
             <p className="text-sm text-brown-700/70">{String(roster.start_time).slice(0,5)}–{String(roster.end_time).slice(0,5)} · {roster.active ? tr(locale, "Active", "启用") : tr(locale, "Inactive", "停用")}</p>
-            <p className="mt-2 text-xs text-brown-700/60">{tr(locale, `${assignedCount} assigned services`, `已分配 ${assignedCount} 项服务`)}</p>
           </div><form action={removeRoster}><input type="hidden" name="id" value={roster.id} /><SubmitButton pendingLabel={tr(locale, "Removing…", "正在移除…")} className="text-sm text-red-700">{tr(locale, "Remove", "移除")}</SubmitButton></form></div></div>;
         }) : <p className="rounded-2xl border border-dashed border-sand-200 p-8 text-center text-brown-700/60">{tr(locale, "No therapists rostered for this location and date.", "该门店在所选日期尚未安排治疗师。")}</p>}
       </div>
@@ -46,7 +42,6 @@ export default async function RosterPage({ searchParams }: { searchParams: Promi
         <label className="mt-4 block text-sm">{tr(locale, "Therapist", "治疗师")}<select name="therapist_id" required className="mt-1 w-full rounded-xl border border-sand-200 px-3 py-2">{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.display_name}</option>)}</select></label>
         <div className="mt-4 grid grid-cols-2 gap-3"><label className="text-sm">{tr(locale, "Start", "开始时间")}<input name="start_time" type="time" defaultValue="09:00" required className="mt-1 w-full rounded-xl border border-sand-200 px-3 py-2" /></label><label className="text-sm">{tr(locale, "End", "结束时间")}<input name="end_time" type="time" defaultValue="17:30" required className="mt-1 w-full rounded-xl border border-sand-200 px-3 py-2" /></label></div>
         <label className="mt-4 flex gap-2 text-sm"><input type="checkbox" name="active" defaultChecked />{tr(locale, "Active that day", "当天启用")}</label>
-        <fieldset className="mt-4 max-h-64 overflow-y-auto rounded-xl border border-sand-200 p-3"><legend className="px-1 text-sm font-medium">{tr(locale, "Services", "可提供服务")}</legend>{services.map((service) => <label key={service.id} className="flex gap-2 py-1 text-xs"><input type="checkbox" name="service_ids" value={service.id} />{service.name}</label>)}</fieldset>
         <SubmitButton pendingLabel={tr(locale, "Saving…", "正在保存…")} className="mt-5 w-full rounded-full bg-sage-700 px-4 py-3 text-sm font-medium text-cream-50">{tr(locale, "Add to roster", "加入排班")}</SubmitButton>
       </form>
     </div>
