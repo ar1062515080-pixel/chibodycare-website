@@ -375,10 +375,20 @@ export async function updateBookingCalendar(
 
   const { data: booking, error: bookingError } = await supabase
     .from("bookings")
-    .select("location_id")
+    .select("location_id,services(price_cents)")
     .eq("id", bookingId)
     .maybeSingle();
   if (bookingError || !booking) return { ok: false, error: "Booking not found or access denied." };
+
+  const service = Array.isArray(booking.services) ? booking.services[0] : booking.services;
+  const expectedPaymentCents = Number(service?.price_cents ?? 0);
+  const enteredPaymentCents = Object.values(paymentAmounts).reduce((sum, value) => sum + value, 0);
+  if (enteredPaymentCents > 0 && expectedPaymentCents > 0 && enteredPaymentCents !== expectedPaymentCents) {
+    return {
+      ok: false,
+      error: `Payment total must equal $${(expectedPaymentCents / 100).toFixed(2)}.`,
+    };
+  }
 
   const appointmentDate = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Australia/Adelaide",

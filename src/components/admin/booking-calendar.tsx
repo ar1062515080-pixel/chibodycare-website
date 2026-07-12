@@ -11,6 +11,7 @@ export type CalendarBooking = {
   customerName: string;
   customerPhone: string;
   serviceName: string;
+  servicePrice: number;
   therapistId: string;
   startAt: string;
   endAt: string;
@@ -83,7 +84,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [popoverDraft, setPopoverDraft] = useState<{ id: string; duration: string; startTime: string; endTime: string; payment: PaymentDraft; voucherNumber: string } | null>(null);
+  const [popoverDraft, setPopoverDraft] = useState<{ id: string; duration: string; startTime: string; endTime: string; therapistId: string; payment: PaymentDraft; voucherNumber: string } | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -143,6 +144,10 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     return Object.fromEntries(entries) as CalendarBooking["paymentAmounts"];
   }
 
+  function paymentTotal(payment: CalendarBooking["paymentAmounts"]) {
+    return paymentKeys.reduce((sum, key) => sum + payment[key], 0);
+  }
+
   async function cancelBooking(booking: CalendarBooking) {
     setSavingId(booking.id);
     setError("");
@@ -199,7 +204,7 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       const willOpen = openId !== current.id;
       setOpenId(willOpen ? current.id : null);
       setCancelConfirmId(null);
-      setPopoverDraft(willOpen ? { id: current.id, duration: String(localMinutes(current.original.endAt) - localMinutes(current.original.startAt)), startTime: timeLabel(localMinutes(current.original.startAt)), endTime: timeLabel(localMinutes(current.original.endAt)), payment: toPaymentDraft(current.original), voucherNumber: current.original.voucherNumber } : null);
+      setPopoverDraft(willOpen ? { id: current.id, duration: String(localMinutes(current.original.endAt) - localMinutes(current.original.startAt)), startTime: timeLabel(localMinutes(current.original.startAt)), endTime: timeLabel(localMinutes(current.original.endAt)), therapistId: current.original.therapistId, payment: toPaymentDraft(current.original), voucherNumber: current.original.voucherNumber } : null);
     }
   }
 
@@ -214,6 +219,9 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
     const isOpen = openId === booking.id && popoverDraft?.id === booking.id;
     const originTherapist = isDragging ? drag.original.therapistId : booking.therapistId;
     const horizontalShift = (therapists.findIndex((therapist) => therapist.id === booking.therapistId) - therapists.findIndex((therapist) => therapist.id === originTherapist)) * 224;
+    const draftPayment = isOpen ? parsePaymentDraft(popoverDraft.payment) : null;
+    const draftPaymentTotal = draftPayment ? paymentTotal(draftPayment) : 0;
+    const amountMismatch = Boolean(draftPayment) && draftPaymentTotal > 0 && Math.abs(draftPaymentTotal - booking.servicePrice) > 0.009;
     return <article
       key={booking.id}
       className={`absolute inset-x-1.5 touch-none select-none rounded-lg border-l-4 p-2 shadow-sm transition-shadow ${cardClass(booking.calendarStatus)} ${isDragging ? "z-40 opacity-70 shadow-xl ring-2 ring-gold" : isOpen ? "z-30 shadow-lg" : "z-10 hover:shadow-md"}`}
@@ -232,7 +240,18 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
       {isDragging ? <span className="absolute -top-7 left-1 rounded bg-brown-900 px-2 py-1 text-[10px] text-white shadow">{timeLabel(start)}–{timeLabel(end)}</span> : null}
       {isOpen && !drag ? <div className="absolute left-2 top-12 z-[80] w-72 touch-auto select-text rounded-2xl border border-sand-200 bg-white p-4 text-brown-900 shadow-2xl ring-1 ring-brown-900/5" onPointerDown={(event) => event.stopPropagation()} onPointerMove={(event) => event.stopPropagation()} onPointerUp={(event) => event.stopPropagation()} onPointerCancel={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
         <p className="mb-2 text-xs font-semibold">{t.update}</p>
-        {!booking.isAnyProfessional ? <p className="mb-2 rounded-md bg-sand-50 px-2 py-1.5 text-[10px] text-brown-700">🔒 {t.locked}</p> : null}
+        <label className="mb-2 block text-[10px] uppercase tracking-wide text-brown-700/60">
+          {t.therapist}
+          <select
+            value={popoverDraft.therapistId}
+            onChange={(event) => setPopoverDraft({ ...popoverDraft, therapistId: event.target.value })}
+            className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs normal-case"
+          >
+            {therapists.map((therapist) => (
+              <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>
+            ))}
+          </select>
+        </label>
         <div className="mb-2 grid grid-cols-2 gap-2"><label className="block text-[10px] uppercase tracking-wide text-brown-700/60">{locale === "zh" ? "开始时间" : "Start time"}<input type="time" step={300} value={popoverDraft.startTime} onChange={(event) => { const value = event.target.value; const [hour, minute] = value.split(":").map(Number); const duration = Math.max(15, Number(popoverDraft.duration) || 15); setPopoverDraft({ ...popoverDraft, startTime: value, endTime: timeLabel(hour * 60 + minute + duration) }); }} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label><label className="block text-[10px] uppercase tracking-wide text-brown-700/60">{locale === "zh" ? "结束时间" : "End time"}<input type="time" step={300} value={popoverDraft.endTime} onChange={(event) => { const value = event.target.value; const [startHour, startMinuteValue] = popoverDraft.startTime.split(":").map(Number); const [endHour, endMinuteValue] = value.split(":").map(Number); const duration = endHour * 60 + endMinuteValue - (startHour * 60 + startMinuteValue); setPopoverDraft({ ...popoverDraft, endTime: value, duration: duration > 0 ? String(duration) : popoverDraft.duration }); }} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label></div>
         <label className="block text-[10px] uppercase tracking-wide text-brown-700/60">{t.duration}<input type="number" inputMode="numeric" min={15} step={5} value={popoverDraft.duration} onChange={(event) => { const value = event.target.value; const duration = Number(value); const [hour, minute] = popoverDraft.startTime.split(":").map(Number); const end = hour * 60 + minute + duration; setPopoverDraft({ ...popoverDraft, duration: value, endTime: Number.isFinite(end) ? timeLabel(end) : popoverDraft.endTime }); }} onBlur={() => setPopoverDraft({ ...popoverDraft, duration: String(Math.max(15, Number(popoverDraft.duration) || 15)) })} className="mt-1 w-full touch-auto select-text rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label>
         <div className="mt-3">
@@ -240,9 +259,15 @@ export function BookingCalendar({ therapists, initialBookings, startMinute, endM
           <div className="mt-2 grid grid-cols-2 gap-2">
             {paymentKeys.map((key) => <label key={key} className={`block text-[10px] uppercase tracking-wide text-brown-700/60 ${key === "waived" ? "col-span-2" : ""}`}>{t[key]}<input type="number" inputMode="decimal" min={0} step={0.01} value={popoverDraft.payment[key]} onChange={(event) => setPopoverDraft({ ...popoverDraft, payment: { ...popoverDraft.payment, [key]: event.target.value } })} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs" /></label>)}
           </div>
+          <p className={`mt-2 text-[10px] ${amountMismatch ? "font-semibold text-red-600" : "text-brown-700/55"}`}>
+            {locale === "zh" ? "应收" : "Expected"} ${booking.servicePrice.toFixed(2)}
+            {" · "}
+            {locale === "zh" ? "已填" : "Entered"} ${draftPaymentTotal.toFixed(2)}
+            {amountMismatch ? ` · ${locale === "zh" ? "金额不一致" : "Amount does not match"}` : ""}
+          </p>
           {Number(popoverDraft.payment.voucher) > 0 ? <label className="mt-2 block text-[10px] uppercase tracking-wide text-brown-700/60">{locale === "zh" ? "礼券编号" : "Voucher number"}<input value={popoverDraft.voucherNumber} onChange={(event) => setPopoverDraft({ ...popoverDraft, voucherNumber: event.target.value })} className="mt-1 w-full rounded-lg border border-sand-200 px-2 py-1.5 text-xs normal-case" /></label> : null}
         </div>
-        <button type="button" disabled={savingId === booking.id} onClick={() => { const startParts = popoverDraft.startTime.split(":").map(Number); const endParts = popoverDraft.endTime.split(":").map(Number); const startMinutes = startParts[0] * 60 + startParts[1]; const endMinutes = endParts[0] * 60 + endParts[1]; if (!Number.isFinite(startMinutes) || !Number.isFinite(endMinutes) || endMinutes <= startMinutes) { setError(locale === "zh" ? "结束时间必须晚于开始时间。" : "End time must be later than start time."); return; } const nextStartAt = shiftIso(booking.startAt, startMinutes - localMinutes(booking.startAt)); const nextEndAt = shiftIso(booking.endAt, endMinutes - localMinutes(booking.endAt)); const paymentAmounts = parsePaymentDraft(popoverDraft.payment); if (!paymentAmounts) { setError(t.amountError); return; } if (paymentAmounts.voucher > 0 && !popoverDraft.voucherNumber.trim()) { setError(locale === "zh" ? "请输入使用的礼券编号。" : "Enter the gift voucher number."); return; } void persist({ ...booking, startAt: nextStartAt, endAt: nextEndAt, paymentAmounts, voucherNumber: popoverDraft.voucherNumber }, booking); setOpenId(null); setPopoverDraft(null); }} className="mt-4 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{savingId === booking.id ? t.saving : t.save}</button>
+        <button type="button" disabled={savingId === booking.id} onClick={() => { const startParts = popoverDraft.startTime.split(":").map(Number); const endParts = popoverDraft.endTime.split(":").map(Number); const startMinutes = startParts[0] * 60 + startParts[1]; const endMinutes = endParts[0] * 60 + endParts[1]; if (!Number.isFinite(startMinutes) || !Number.isFinite(endMinutes) || endMinutes <= startMinutes) { setError(locale === "zh" ? "结束时间必须晚于开始时间。" : "End time must be later than start time."); return; } const nextStartAt = shiftIso(booking.startAt, startMinutes - localMinutes(booking.startAt)); const nextEndAt = shiftIso(booking.endAt, endMinutes - localMinutes(booking.endAt)); const paymentAmounts = parsePaymentDraft(popoverDraft.payment); if (!paymentAmounts) { setError(t.amountError); return; } if (paymentAmounts.voucher > 0 && !popoverDraft.voucherNumber.trim()) { setError(locale === "zh" ? "请输入使用的礼券编号。" : "Enter the gift voucher number."); return; } const total = paymentTotal(paymentAmounts); if (total > 0 && Math.abs(total - booking.servicePrice) > 0.009) { setError(locale === "zh" ? `付款合计必须等于项目金额 $${booking.servicePrice.toFixed(2)}。` : `Payment total must equal $${booking.servicePrice.toFixed(2)}.`); return; } void persist({ ...booking, therapistId: popoverDraft.therapistId, startAt: nextStartAt, endAt: nextEndAt, paymentAmounts, voucherNumber: popoverDraft.voucherNumber }, booking); setOpenId(null); setPopoverDraft(null); }} className="mt-4 w-full rounded-lg bg-brown-900 px-3 py-2 text-xs text-white disabled:opacity-50">{savingId === booking.id ? t.saving : t.save}</button>
         <button type="button" disabled={savingId === booking.id} onClick={() => cancelConfirmId === booking.id ? void cancelBooking(booking) : setCancelConfirmId(booking.id)} className={`mt-2 w-full rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50 ${cancelConfirmId === booking.id ? "border-red-700 bg-red-700 text-white" : "border-red-200 text-red-700 hover:bg-red-50"}`}>{savingId === booking.id ? t.cancelling : cancelConfirmId === booking.id ? t.confirmCancel : t.cancel}</button>
       </div> : null}
     </article>;

@@ -68,6 +68,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
     return {
       id: booking.id, reference: booking.reference, customerName: booking.customer_name, customerPhone: booking.customer_phone,
       serviceName: service?.name || tr(locale, "Treatment", "服务项目"), therapistId: booking.therapist_id,
+      servicePrice: cents(service?.price_cents) / 100,
       startAt: booking.start_at, endAt: booking.end_at,
       calendarStatus: booking.calendar_status ?? (booking.status === "no_show" ? "no_show" : "unpaid"),
       isAnyProfessional: booking.is_any_professional,
