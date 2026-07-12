@@ -125,18 +125,20 @@ export default function AboutPage() {
       </section>
 
       {/* Therapist profiles */}
-      <section className="container-page mb-0 mt-16 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
-        <SectionHeading
-          eyebrow="Our Practitioners"
-          title="Meet the team caring for you"
-          description="Experienced, accredited and genuinely passionate about your wellbeing."
-        />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {staff.map((member) => (
-            <TeamCard key={member.id} member={member} detailed />
-          ))}
-        </div>
-      </section>
+      <div className="container-page pb-10 pt-16 sm:pb-16">
+        <section className="rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
+          <SectionHeading
+            eyebrow="Our Practitioners"
+            title="Meet the team caring for you"
+            description="Experienced, accredited and genuinely passionate about your wellbeing."
+          />
+          <div className="mt-12 grid gap-5 px-6 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
+            {staff.map((member) => (
+              <TeamCard key={member.id} member={member} detailed />
+            ))}
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
