@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { PageHero } from "@/components/page-hero";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { TeamCard } from "@/components/team-card";
@@ -41,7 +42,13 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <>
+    <main
+      className="relative bg-cream-100 bg-cover bg-center bg-fixed"
+      style={{
+        backgroundImage:
+          "linear-gradient(rgba(250, 247, 240, 0.6), rgba(250, 247, 240, 0.6)), url('/images/studio/about-massage-background.png')",
+      }}
+    >
       <PageHero
         eyebrow="Our Story"
         title="Where ancient wisdom meets modern care"
@@ -50,17 +57,10 @@ export default function AboutPage() {
 
       {/* Brand story */}
       <section className="container-page py-16">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
+        <div className="grid items-center gap-12 rounded-[2rem] border border-cream-50/80 bg-cream-50/82 p-6 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm sm:p-10 lg:grid-cols-2">
           <div className="relative">
-            <div className="aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 bg-gradient-to-br from-sage-200 via-sand-100 to-champagne shadow-lg">
-              <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
-                <span className="flex h-20 w-20 items-center justify-center rounded-full bg-cream-50/80 font-serif text-4xl text-sage-600 shadow-md">
-                  氣
-                </span>
-                <p className="font-serif text-2xl text-brown-900">
-                  {business.tagline}
-                </p>
-              </div>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-[2.5rem] border border-sand-200 shadow-lg">
+              <Image src="/images/studio/studio-lounge.webp" alt="Chi Body Care studio lounge" fill sizes="(min-width:1024px) 45vw, 100vw" className="object-cover object-center" />
             </div>
           </div>
           <div>
@@ -97,7 +97,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="bg-sand-50/60 py-16">
+      <section className="bg-sand-50/70 py-16 backdrop-blur-sm">
         <div className="container-page">
           <SectionHeading
             eyebrow="What we value"
@@ -125,18 +125,20 @@ export default function AboutPage() {
       </section>
 
       {/* Therapist profiles */}
-      <section className="container-page py-16">
-        <SectionHeading
-          eyebrow="Our Practitioners"
-          title="Meet the team caring for you"
-          description="Experienced, accredited and genuinely passionate about your wellbeing."
-        />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {staff.map((member) => (
-            <TeamCard key={member.id} member={member} detailed />
-          ))}
-        </div>
-      </section>
-    </>
+      <div className="container-page pb-10 pt-16 sm:pb-16">
+        <section className="rounded-[2rem] border border-cream-50/80 bg-cream-50/82 py-16 shadow-[0_18px_50px_rgba(39,30,23,.08)] backdrop-blur-sm">
+          <SectionHeading
+            eyebrow="Our Practitioners"
+            title="Meet the team caring for you"
+            description="Experienced, accredited and genuinely passionate about your wellbeing."
+          />
+          <div className="mt-12 grid gap-5 px-6 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
+            {staff.map((member) => (
+              <TeamCard key={member.id} member={member} detailed />
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }

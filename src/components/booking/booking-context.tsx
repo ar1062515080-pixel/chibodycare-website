@@ -13,8 +13,6 @@ import {
   type CategoryId,
   type Service,
 } from "@/lib/services";
-import { getStaffForCategories, getStaffById } from "@/lib/staff";
-import type { StaffMember } from "@/lib/staff";
 
 export const TOTAL_STEPS = 5;
 export type BookingStep = 1 | 2 | 3 | 4 | 5;
@@ -29,23 +27,37 @@ export type ContactDetails = {
   notes: string;
 };
 
+export type BookingLocation = { id: string; name: string; phone: string };
+
 export type BookingState = {
   step: BookingStep;
   serviceIds: string[];
   professionalId: string | null; // null | ANY_PROFESSIONAL | staff id
+  professionalName: string | null;
   locationId: string;
   dateKey: string | null;
   time: string | null;
+  startAt: string | null;
+  dailyRosterId: string | null;
   contact: ContactDetails;
   reference: string | null;
 };
 
 type BookingAction =
   | { type: "TOGGLE_SERVICE"; serviceId: string }
-  | { type: "SET_PROFESSIONAL"; professionalId: string }
+  | { type: "CLEAR_SERVICE" }
+  | { type: "SET_PROFESSIONAL"; professionalId: string; professionalName?: string | null }
   | { type: "SET_LOCATION"; locationId: string }
   | { type: "SET_DATE"; dateKey: string }
-  | { type: "SET_TIME"; time: string }
+  | { type: "SELECT_START_TIME"; time: string; startAt: string }
+  | {
+      type: "SELECT_SLOT";
+      time: string;
+      startAt: string;
+      dailyRosterId: string;
+      professionalId: string;
+      professionalName: string | null;
+    }
   | { type: "SET_CONTACT_FIELD"; field: keyof ContactDetails; value: string }
   | { type: "GO_TO_STEP"; step: BookingStep }
   | { type: "NEXT" }
@@ -67,9 +79,12 @@ function createInitialState(initialServiceIds: string[] = []): BookingState {
     step: 1,
     serviceIds: valid,
     professionalId: null,
-    locationId: "city-myer-centre",
+    professionalName: null,
+    locationId: "",
     dateKey: null,
     time: null,
+    startAt: null,
+    dailyRosterId: null,
     contact: emptyContact,
     reference: null,
   };
@@ -85,52 +100,80 @@ function categoriesForServices(serviceIds: string[]): CategoryId[] {
   return Array.from(set);
 }
 
-function professionalStillValid(
-  professionalId: string | null,
-  serviceIds: string[],
-): boolean {
-  if (professionalId === null || professionalId === ANY_PROFESSIONAL) {
-    return true;
-  }
-  const categories = categoriesForServices(serviceIds);
-  const eligible = getStaffForCategories(categories);
-  return eligible.some((member) => member.id === professionalId);
-}
-
 function reducer(state: BookingState, action: BookingAction): BookingState {
   switch (action.type) {
     case "TOGGLE_SERVICE": {
       const exists = state.serviceIds.includes(action.serviceId);
-      const serviceIds = exists
-        ? state.serviceIds.filter((id) => id !== action.serviceId)
-        : [...state.serviceIds, action.serviceId];
-
-      // Changing services may invalidate downstream selections.
-      const keepProfessional = professionalStillValid(
-        state.professionalId,
-        serviceIds,
-      );
+      const serviceIds = exists ? [] : [action.serviceId];
 
       return {
         ...state,
         serviceIds,
-        professionalId: keepProfessional ? state.professionalId : null,
-        // Duration may change, so reset the chosen time.
-        time: null,
+        dailyRosterId: null,
       };
     }
 
+    case "CLEAR_SERVICE":
+      return {
+        ...state,
+        serviceIds: [],
+        dailyRosterId: null,
+      };
+
     case "SET_PROFESSIONAL":
-      return { ...state, professionalId: action.professionalId };
+      return {
+        ...state,
+        professionalId: action.professionalId,
+        professionalName: action.professionalName ?? null,
+        serviceIds: [],
+        dailyRosterId: null,
+      };
 
     case "SET_LOCATION":
-      return { ...state, locationId: action.locationId };
+      return {
+        ...state,
+        locationId: action.locationId,
+        professionalId: null,
+        professionalName: null,
+        serviceIds: [],
+        dateKey: null,
+        time: null,
+        startAt: null,
+        dailyRosterId: null,
+      };
 
     case "SET_DATE":
-      return { ...state, dateKey: action.dateKey, time: null };
+      return {
+        ...state,
+        dateKey: action.dateKey,
+        professionalId: null,
+        professionalName: null,
+        serviceIds: [],
+        time: null,
+        startAt: null,
+        dailyRosterId: null,
+      };
 
-    case "SET_TIME":
-      return { ...state, time: action.time };
+    case "SELECT_START_TIME":
+      return {
+        ...state,
+        time: action.time,
+        startAt: action.startAt,
+        professionalId: null,
+        professionalName: null,
+        serviceIds: [],
+        dailyRosterId: null,
+      };
+
+    case "SELECT_SLOT":
+      return {
+        ...state,
+        time: action.time,
+        startAt: action.startAt,
+        dailyRosterId: action.dailyRosterId,
+        professionalId: state.professionalId === ANY_PROFESSIONAL ? ANY_PROFESSIONAL : action.professionalId,
+        professionalName: state.professionalId === ANY_PROFESSIONAL ? null : action.professionalName,
+      };
 
     case "SET_CONTACT_FIELD":
       return {
@@ -169,8 +212,7 @@ export type BookingDerived = {
   totalDuration: number;
   totalPrice: number;
   categories: CategoryId[];
-  eligibleStaff: StaffMember[];
-  selectedProfessional: StaffMember | null;
+  selectedProfessional: { id: string; name: string } | null;
 };
 
 function deriveState(state: BookingState): BookingDerived {
@@ -188,11 +230,11 @@ function deriveState(state: BookingState): BookingDerived {
   );
 
   const categories = categoriesForServices(state.serviceIds);
-  const eligibleStaff = getStaffForCategories(categories);
-
   const selectedProfessional =
-    state.professionalId && state.professionalId !== ANY_PROFESSIONAL
-      ? (getStaffById(state.professionalId) ?? null)
+    state.professionalId &&
+    state.professionalId !== ANY_PROFESSIONAL &&
+    state.professionalName
+      ? { id: state.professionalId, name: state.professionalName }
       : null;
 
   return {
@@ -200,7 +242,6 @@ function deriveState(state: BookingState): BookingDerived {
     totalDuration,
     totalPrice,
     categories,
-    eligibleStaff,
     selectedProfessional,
   };
 }
@@ -209,6 +250,7 @@ type BookingContextValue = {
   state: BookingState;
   dispatch: Dispatch<BookingAction>;
   derived: BookingDerived;
+  bookingLocations: BookingLocation[];
 };
 
 const BookingContext = createContext<BookingContextValue | null>(null);
@@ -216,9 +258,11 @@ const BookingContext = createContext<BookingContextValue | null>(null);
 export function BookingProvider({
   children,
   initialServiceIds,
+  initialLocations,
 }: {
   children: ReactNode;
   initialServiceIds?: string[];
+  initialLocations: BookingLocation[];
 }) {
   const [state, dispatch] = useReducer(
     reducer,
@@ -229,8 +273,8 @@ export function BookingProvider({
   const derived = useMemo(() => deriveState(state), [state]);
 
   const value = useMemo(
-    () => ({ state, dispatch, derived }),
-    [state, derived],
+    () => ({ state, dispatch, derived, bookingLocations: initialLocations }),
+    [state, derived, initialLocations],
   );
 
   return (

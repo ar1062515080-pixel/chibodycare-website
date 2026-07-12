@@ -2,7 +2,6 @@
 
 import { useBooking, ANY_PROFESSIONAL } from "@/components/booking/booking-context";
 import { formatDuration, formatPrice, formatTime } from "@/lib/format";
-import { locations } from "@/lib/business";
 import { cn } from "@/lib/cn";
 
 function formatDateKey(dateKey: string): string {
@@ -16,11 +15,11 @@ function formatDateKey(dateKey: string): string {
 }
 
 export function BookingSummaryContent() {
-  const { state, derived } = useBooking();
+  const { state, derived, bookingLocations } = useBooking();
   const { selectedServices, totalDuration, totalPrice, selectedProfessional } =
     derived;
 
-  const location = locations.find((l) => l.id === state.locationId);
+  const location = bookingLocations.find((l) => l.id === state.locationId);
 
   const professionalLabel =
     state.professionalId === ANY_PROFESSIONAL
@@ -68,12 +67,6 @@ export function BookingSummaryContent() {
 
       {state.step >= 2 ? (
         <dl className="mt-4 space-y-2 border-t border-sand-100 pt-4 text-sm">
-          <div className="flex justify-between gap-3">
-            <dt className="text-brown-700/60">Professional</dt>
-            <dd className="text-right font-medium text-brown-900">
-              {professionalLabel}
-            </dd>
-          </div>
           {state.dateKey ? (
             <div className="flex justify-between gap-3">
               <dt className="text-brown-700/60">Date</dt>
@@ -87,6 +80,14 @@ export function BookingSummaryContent() {
               <dt className="text-brown-700/60">Time</dt>
               <dd className="text-right font-medium text-brown-900">
                 {formatTime(state.time)}
+              </dd>
+            </div>
+          ) : null}
+          {state.startAt ? (
+            <div className="flex justify-between gap-3">
+              <dt className="text-brown-700/60">Professional</dt>
+              <dd className="text-right font-medium text-brown-900">
+                {professionalLabel}
               </dd>
             </div>
           ) : null}
@@ -127,8 +128,8 @@ export function BookingSummarySidebar({ className }: { className?: string }) {
 
 /** Mobile collapsible-style summary card. */
 export function BookingSummaryMobile() {
-  const { derived } = useBooking();
-  if (derived.selectedServices.length === 0) return null;
+  const { state } = useBooking();
+  if (!state.locationId) return null;
 
   return (
     <div className="rounded-3xl border border-sand-100 bg-cream-50 p-5 shadow-sm lg:hidden">

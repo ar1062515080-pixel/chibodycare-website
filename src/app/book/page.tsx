@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { BookingExperience } from "@/components/booking/booking-experience";
 import { getServiceById } from "@/lib/services";
+import { locations } from "@/lib/business";
+import { hasSupabaseEnv } from "@/lib/supabase/config";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Book an Appointment",
   description:
-    "Book your Chi Body Care treatment online. Choose your services, professional and a time that suits you.",
+    "Book your Chi Body Care treatment online. Choose a studio, professional, treatment and time.",
 };
 
 type SearchParams = Promise<{
@@ -28,6 +31,22 @@ export default async function BookPage({
 }) {
   const params = await searchParams;
   const initialServiceIds = parseServiceParam(params.service);
+  let bookingLocations = locations.map(({ id, name, phone }) => ({ id, name, phone }));
+  if (hasSupabaseEnv()) {
+    const supabase = await createSupabaseServerClient();
+    const { data } = await supabase
+      .from("locations")
+      .select("slug,name,phone")
+      .eq("active", true)
+      .order("name");
+    if (data?.length) {
+      bookingLocations = data.map((location) => ({
+        id: location.slug,
+        name: location.name,
+        phone: location.phone,
+      }));
+    }
+  }
 
   return (
     <div className="bg-sand-50/40">
@@ -40,13 +59,13 @@ export default async function BookPage({
             Book your treatment
           </h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brown-700/80">
-            A few simple steps to your moment of calm. Select your treatments,
-            choose a professional and pick a time.
+            Choose your studio, preferred professional, treatment and a time
+            that suits you.
           </p>
         </div>
       </div>
 
-      <BookingExperience initialServiceIds={initialServiceIds} />
+      <BookingExperience initialServiceIds={initialServiceIds} initialLocations={bookingLocations} />
     </div>
   );
 }

@@ -89,7 +89,7 @@ export function StepContact({ showErrors }: { showErrors: boolean }) {
             htmlFor="email"
             className="mb-1.5 block text-sm font-medium text-brown-800"
           >
-            Email
+            Email <span className="text-brown-700/50">(optional)</span>
           </label>
           <input
             id="email"

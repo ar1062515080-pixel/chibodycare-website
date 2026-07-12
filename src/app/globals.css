@@ -79,6 +79,19 @@
     background-color: var(--color-sage-200);
     color: var(--color-brown-900);
   }
+
+  button:not(:disabled),
+  [role="button"],
+  a[href],
+  summary,
+  label:has(input[type="checkbox"]),
+  label:has(input[type="radio"]) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @layer components {

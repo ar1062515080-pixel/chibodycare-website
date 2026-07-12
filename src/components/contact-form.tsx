@@ -87,9 +87,7 @@ export function ContactForm() {
           Thank you, {state.name.split(" ")[0]}!
         </h3>
         <p className="mt-2 max-w-sm text-sm leading-relaxed text-brown-700/80">
-          Your message has been received. This is a demo form, so nothing was
-          sent — but our team would normally be in touch within one business
-          day.
+          Your message has been received. Our team will be in touch shortly.
         </p>
         <button
           type="button"
@@ -230,10 +228,6 @@ export function ContactForm() {
       >
         Send message
       </button>
-      <p className="text-xs text-brown-700/60">
-        This is a demonstration form — submissions are handled entirely in your
-        browser and are not stored or sent.
-      </p>
     </form>
   );
 }
