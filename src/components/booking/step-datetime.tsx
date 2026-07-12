@@ -52,9 +52,9 @@ export function StepDateTime() {
         </p>
       </div>
 
-      <div className="min-w-0 rounded-3xl border border-sand-200 bg-cream-50/90 p-4 shadow-sm sm:p-5">
-        <div className="grid min-w-0 gap-4 sm:grid-cols-2">
-          <div className="min-w-0">
+      <div className="w-full min-w-0 overflow-hidden rounded-3xl border border-sand-200 bg-cream-50/90 p-4 shadow-sm sm:p-5">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="w-full min-w-0 overflow-hidden">
             <label
               className="block text-sm font-medium text-brown-800"
               htmlFor="booking-date"
@@ -68,11 +68,11 @@ export function StepDateTime() {
               min={minDateKey}
               value={state.dateKey || ""}
               onChange={(event) => applyDateTime(event.target.value, timeValue)}
-              className="mt-3 h-14 w-full min-w-0 max-w-full rounded-2xl border border-sand-200 bg-white px-3 text-base font-medium text-brown-900 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 sm:px-4"
+              className="booking-date-time-input mt-3 block h-14 w-full min-w-0 max-w-full rounded-2xl border border-sand-200 bg-white px-3 text-base font-medium text-brown-900 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 sm:px-4"
             />
           </div>
 
-          <div className="min-w-0">
+          <div className="w-full min-w-0 overflow-hidden">
             <label
               className="block text-sm font-medium text-brown-800"
               htmlFor="booking-time"
@@ -89,7 +89,7 @@ export function StepDateTime() {
                 setTimeValue(nextTime);
                 if (state.dateKey) applyDateTime(state.dateKey, nextTime);
               }}
-              className="mt-3 h-14 w-full min-w-0 max-w-full rounded-2xl border border-sand-200 bg-white px-3 text-base font-medium text-brown-900 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 sm:px-4"
+              className="booking-date-time-input mt-3 block h-14 w-full min-w-0 max-w-full rounded-2xl border border-sand-200 bg-white px-3 text-base font-medium text-brown-900 outline-none transition focus:border-sage-500 focus:ring-2 focus:ring-sage-200 sm:px-4"
             />
           </div>
         </div>

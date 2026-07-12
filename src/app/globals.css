@@ -94,6 +94,22 @@
   button:disabled {
     cursor: not-allowed;
   }
+
+  input[type="date"].booking-date-time-input,
+  input[type="time"].booking-date-time-input {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input[type="date"].booking-date-time-input::-webkit-date-and-time-value,
+  input[type="time"].booking-date-time-input::-webkit-date-and-time-value {
+    min-width: 0;
+    text-align: left;
+  }
 }
 
 @layer components {
