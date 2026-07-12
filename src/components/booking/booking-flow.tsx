@@ -11,6 +11,7 @@ import { StepContact } from "@/components/booking/step-contact";
 import { StepConfirmation } from "@/components/booking/step-confirmation";
 import { BookingSummarySidebar, BookingSummaryMobile } from "@/components/booking/booking-summary";
 import { isContactValid } from "@/components/booking/validation";
+import { cn } from "@/lib/cn";
 
 const stepHints: Record<number, string> = {
   2: "Choose a date, time and professional.",
@@ -74,7 +75,7 @@ export function BookingFlow() {
   const isConfirmation = state.step === 5;
   return <div className="container-page py-10 sm:py-14">
     {!isConfirmation ? <div className="mb-8 rounded-3xl border border-sand-100 bg-cream-50 p-5 shadow-sm sm:p-6"><StepIndicator /></div> : null}
-    <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+    <div className={cn("grid gap-8", isConfirmation ? "mx-auto max-w-3xl" : "lg:grid-cols-[1fr_22rem]")}>
       <div>
         <div className="rounded-3xl border border-sand-100 bg-cream-50 p-6 shadow-sm sm:p-8">
           {state.step === 1 ? <StepLocation /> : null}
