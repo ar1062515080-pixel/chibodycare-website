@@ -94,6 +94,7 @@ export function StepDateTime() {
         <input
           id="booking-date"
           type="date"
+          lang="en-AU"
           min={minDateKey}
           value={state.dateKey || ""}
           onChange={(event) => {
