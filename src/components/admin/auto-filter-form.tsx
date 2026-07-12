@@ -21,7 +21,7 @@ export function AutoFilterForm({ children, ...props }: FormHTMLAttributes<HTMLFo
       }}
       onChange={(event) => {
         const target = event.target;
-        if (target instanceof HTMLSelectElement || (target instanceof HTMLInputElement && ["date", "month"].includes(target.type))) {
+        if (target instanceof HTMLSelectElement || (target instanceof HTMLInputElement && ["date", "month", "checkbox", "radio"].includes(target.type))) {
           event.currentTarget.requestSubmit();
         }
       }}
