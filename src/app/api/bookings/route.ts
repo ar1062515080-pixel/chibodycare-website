@@ -21,7 +21,9 @@ export async function POST(request: Request) {
   if (
     !body.customerName?.trim() ||
     !body.customerPhone?.trim() ||
-    !validEmail(body.customerEmail ?? "") ||
+    (body.customerEmail?.trim()
+      ? !validEmail(body.customerEmail.trim())
+      : false) ||
     !body.locationId ||
     !body.serviceId ||
     !body.startAt
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.rpc("create_booking", {
     p_customer_name: body.customerName.trim(),
     p_customer_phone: body.customerPhone.trim(),
-    p_customer_email: body.customerEmail.trim().toLowerCase(),
+    p_customer_email: body.customerEmail?.trim().toLowerCase() || "",
     p_notes: body.notes?.trim() || "",
     p_location_id: locationResult.data.id,
     p_service_id: serviceResult.data.id,

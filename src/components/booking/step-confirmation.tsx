@@ -48,7 +48,8 @@ export function StepConfirmation() {
       </h2>
       <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-brown-700/80">
         Thank you, {state.contact.firstName}! Your appointment is reserved. A
-        confirmation has been recorded for {state.contact.email}.
+        confirmation has been recorded
+        {state.contact.email ? ` for ${state.contact.email}` : ""}.
       </p>
 
       <div className="mx-auto mt-6 inline-flex flex-col items-center rounded-2xl border border-sage-200 bg-sage-50 px-6 py-4">

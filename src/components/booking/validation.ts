@@ -14,9 +14,7 @@ export function validateContact(contact: ContactDetails): ContactErrors {
   if (!contact.lastName.trim()) {
     errors.lastName = "Last name is required.";
   }
-  if (!contact.email.trim()) {
-    errors.email = "Email is required.";
-  } else if (!emailPattern.test(contact.email.trim())) {
+  if (contact.email.trim() && !emailPattern.test(contact.email.trim())) {
     errors.email = "Enter a valid email address.";
   }
   if (!contact.phone.trim()) {
