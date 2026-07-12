@@ -236,6 +236,13 @@ export async function createAdminBooking(formData: FormData) {
     .single();
   if (adminServiceError || !adminService) throw new Error("所选项目当前不可预约。");
 
+  const { data: adminCapableRows, error: adminCapableError } = await supabase
+    .from("therapist_services")
+    .select("therapist_id")
+    .eq("service_id", serviceId);
+  if (adminCapableError) throw new Error(adminCapableError.message);
+  const adminCapableTherapistIds = new Set((adminCapableRows ?? []).map((row) => row.therapist_id));
+
   const adminEndAt = new Date(adminStartAt.getTime() + Number(adminService.duration_minutes) * 60000);
   let adminRosterQuery = supabase
     .from("daily_rosters")
@@ -255,7 +262,7 @@ export async function createAdminBooking(formData: FormData) {
     const rosterEnd = String(roster.end_time).slice(0, 5);
     const rosterStartMinute = Number(rosterStart.slice(0, 2)) * 60 + Number(rosterStart.slice(3, 5));
     const rosterEndMinute = Number(rosterEnd.slice(0, 2)) * 60 + Number(rosterEnd.slice(3, 5));
-    return adminStartMinute >= rosterStartMinute && adminEndMinute <= rosterEndMinute;
+    return adminCapableTherapistIds.has(roster.therapist_id) && adminStartMinute >= rosterStartMinute && adminEndMinute <= rosterEndMinute;
   });
   if (!adminMatchingRosters.length) throw new Error("这个时间没有可用排班。");
 
@@ -347,6 +354,13 @@ export async function createAdminBookingSafe(formData: FormData) {
   if (serviceError || !service) fail("所选项目当前不可预约。");
   const serviceDuration = Number(service?.duration_minutes ?? 0);
 
+  const { data: capableRows, error: capableError } = await supabase
+    .from("therapist_services")
+    .select("therapist_id")
+    .eq("service_id", serviceId);
+  if (capableError) fail(capableError.message);
+  const capableTherapistIds = new Set((capableRows ?? []).map((row) => row.therapist_id));
+
   const endAt = new Date(startAt.getTime() + serviceDuration * 60000);
   let rosterQuery = supabase
     .from("daily_rosters")
@@ -366,7 +380,7 @@ export async function createAdminBookingSafe(formData: FormData) {
     const rosterEnd = String(roster.end_time).slice(0, 5);
     const rosterStartMinute = Number(rosterStart.slice(0, 2)) * 60 + Number(rosterStart.slice(3, 5));
     const rosterEndMinute = Number(rosterEnd.slice(0, 2)) * 60 + Number(rosterEnd.slice(3, 5));
-    return startMinute >= rosterStartMinute && endMinute <= rosterEndMinute;
+    return capableTherapistIds.has(roster.therapist_id) && startMinute >= rosterStartMinute && endMinute <= rosterEndMinute;
   });
   if (!matchingRosters.length) fail("这个时间没有可用排班。");
 
