@@ -1,5 +1,5 @@
 import { BookingCalendar, type CalendarBooking, type CalendarStatus, type CalendarTherapist } from "@/components/admin/booking-calendar";
-import { cancelBookingCalendar, createAdminBooking, removeGiftVoucherSale, saveDailyStoreRecord, saveGiftVoucherSale, updateBookingCalendar } from "@/app/admin/actions";
+import { cancelBookingCalendar, createAdminBookingSafe, removeGiftVoucherSale, saveDailyStoreRecord, saveGiftVoucherSale, updateBookingCalendar } from "@/app/admin/actions";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { AutoFilterForm } from "@/components/admin/auto-filter-form";
 import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
@@ -37,11 +37,12 @@ function parseDailyNotes(value: string) {
   };
 }
 
-export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ date?: string; location?: string }> }) {
+export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ date?: string; location?: string; error?: string }> }) {
   const params = await searchParams;
   const locale = await getAdminLocale();
   const supabase = await createSupabaseServerClient();
   const date = params.date || new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE }).format(new Date());
+  const actionError = params.error;
   const { data: locationRows } = await supabase.from("locations").select("id,name").eq("active", true).order("name");
   const locations = locationRows ?? [];
   const locationId = params.location || locations[0]?.id || "";
@@ -111,6 +112,8 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
     <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Bookings", "预约管理")}</p>
     <div className="mt-2 flex flex-wrap items-end justify-between gap-4"><div><h1 className="font-serif text-4xl text-brown-900">{tr(locale, "Daily appointment calendar", "每日预约日历")}</h1><p className="mt-1 text-sm text-brown-700/65">{selectedLocation} · {new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-AU", { dateStyle: "full", timeZone: TIME_ZONE }).format(new Date(`${date}T12:00:00Z`))}</p></div><p className="max-w-xl text-sm text-brown-700/65">{tr(locale, "Appointments, payments and daily reconciliation follow the store workbook in one place.", "预约、收款与每日对账按照门店工作簿集中在同一页面。")}</p></div>
 
+    {actionError ? <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{actionError}</div> : null}
+
     <AutoFilterForm className="mt-6 flex flex-wrap gap-3 rounded-2xl border border-sand-200 bg-cream-50 p-4">
       <label className="text-xs font-medium text-brown-700">{tr(locale, "Date", "日期")}<input type="date" name="date" defaultValue={date} className="mt-1 block rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
       <label className="min-w-60 flex-1 text-xs font-medium text-brown-700">{tr(locale, "Studio", "门店")}<select name="location" defaultValue={locationId} className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm">{locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}</select></label>
@@ -125,7 +128,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         </div>
         <p className="text-xs text-brown-700/55">{tr(locale, "Uses the same roster and double-booking checks.", "使用同一套排班和防撞单规则。")}</p>
       </div>
-      <form action={createAdminBooking} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+      <form action={createAdminBookingSafe} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
         <input type="hidden" name="location_id" value={locationId} />
         <input type="hidden" name="date" value={date} />
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Customer name", "客户姓名")}<input required name="customer_name" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>

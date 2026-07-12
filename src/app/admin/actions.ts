@@ -318,6 +318,89 @@ export async function createAdminBooking(formData: FormData) {
   revalidatePath("/admin/bookings");
 }
 
+export async function createAdminBookingSafe(formData: FormData) {
+  const { supabase } = await requireAdmin();
+  const customerName = String(formData.get("customer_name") ?? "").trim();
+  const customerPhone = String(formData.get("customer_phone") ?? "").trim();
+  const customerEmail = String(formData.get("customer_email") ?? "").trim().toLowerCase();
+  const notes = String(formData.get("notes") ?? "").trim();
+  const locationId = String(formData.get("location_id") ?? "");
+  const serviceId = String(formData.get("service_id") ?? "");
+  const therapistValue = String(formData.get("therapist_id") ?? "");
+  const date = String(formData.get("date") ?? "");
+  const time = String(formData.get("start_time") ?? "");
+  const fail = (message: string): never => redirect(`/admin/bookings?date=${encodeURIComponent(date)}&location=${encodeURIComponent(locationId)}&error=${encodeURIComponent(message)}`);
+
+  if (!customerName || !customerPhone || !locationId || !serviceId || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    fail("请填写客户姓名、电话、开始时间和项目。");
+  }
+
+  const startAt = adelaideLocalToUtc(date, time);
+  if (startAt <= new Date()) fail("预约时间必须晚于当前时间。");
+
+  const { data: service, error: serviceError } = await supabase
+    .from("services")
+    .select("id,duration_minutes")
+    .eq("id", serviceId)
+    .eq("active", true)
+    .single();
+  if (serviceError || !service) fail("所选项目当前不可预约。");
+  const serviceDuration = Number(service?.duration_minutes ?? 0);
+
+  const endAt = new Date(startAt.getTime() + serviceDuration * 60000);
+  let rosterQuery = supabase
+    .from("daily_rosters")
+    .select("id,therapist_id,start_time,end_time")
+    .eq("date", date)
+    .eq("location_id", locationId)
+    .eq("active", true)
+    .order("start_time");
+  if (therapistValue && therapistValue !== "any") rosterQuery = rosterQuery.eq("therapist_id", therapistValue);
+  const { data: rosterRows, error: rosterError } = await rosterQuery;
+  if (rosterError) fail(rosterError.message);
+
+  const startMinute = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+  const endMinute = startMinute + serviceDuration;
+  const matchingRosters = (rosterRows ?? []).filter((roster) => {
+    const rosterStart = String(roster.start_time).slice(0, 5);
+    const rosterEnd = String(roster.end_time).slice(0, 5);
+    const rosterStartMinute = Number(rosterStart.slice(0, 2)) * 60 + Number(rosterStart.slice(3, 5));
+    const rosterEndMinute = Number(rosterEnd.slice(0, 2)) * 60 + Number(rosterEnd.slice(3, 5));
+    return startMinute >= rosterStartMinute && endMinute <= rosterEndMinute;
+  });
+  if (!matchingRosters.length) fail("这个时间没有可用排班。");
+
+  let lastInsertError: { message: string; code?: string } | null = null;
+  for (const roster of matchingRosters) {
+    const reference = `CBC-${crypto.randomUUID().replaceAll("-", "").slice(0, 10).toUpperCase()}`;
+    const { error: insertError } = await supabase.from("bookings").insert({
+      reference,
+      customer_name: customerName,
+      customer_phone: customerPhone,
+      customer_email: customerEmail,
+      location_id: locationId,
+      service_id: serviceId,
+      therapist_id: roster.therapist_id,
+      daily_roster_id: roster.id,
+      start_at: startAt.toISOString(),
+      end_at: endAt.toISOString(),
+      status: "pending",
+      notes,
+      is_any_professional: !(therapistValue && therapistValue !== "any"),
+    });
+    if (!insertError) {
+      revalidatePath("/admin/bookings");
+      redirect(`/admin/bookings?date=${encodeURIComponent(date)}&location=${encodeURIComponent(locationId)}`);
+    }
+    lastInsertError = insertError;
+    if (therapistValue && therapistValue !== "any") break;
+    if (insertError.code !== "23P01" && insertError.code !== "23505") break;
+  }
+
+  if (lastInsertError?.code === "23P01") fail("这个时间已被占用，请选择其他时间或按摩师。");
+  fail(lastInsertError?.message ?? "无法添加预约，请检查时间和排班。");
+}
+
 export type BookingCalendarStatus = "unpaid" | "paid" | "no_show";
 export type BookingPaymentAmounts = {
   cardAmount: number;
