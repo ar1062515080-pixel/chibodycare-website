@@ -13,10 +13,21 @@ export default async function RosterPage({ searchParams }: { searchParams: Promi
   const locations = locationRows ?? [];
   const locationId = params.location || locations[0]?.id || "";
   const [{ data: therapistRows }, { data: rosterRows }] = await Promise.all([
-    supabase.from("therapists").select("id,display_name,internal_name").eq("active", true).order("display_name"),
+    locationId
+      ? supabase
+          .from("location_therapists")
+          .select("therapists(id,display_name,internal_name,active)")
+          .eq("location_id", locationId)
+      : Promise.resolve({ data: [] }),
     supabase.from("daily_rosters").select("id,date,start_time,end_time,active,therapists(display_name)").eq("date", date).eq("location_id", locationId).order("start_time"),
   ]);
-  const therapists = therapistRows ?? [];
+  const therapists = (therapistRows ?? [])
+    .flatMap((row) => {
+      const value = (row as { therapists: Array<{ id: string; display_name: string; internal_name: string; active: boolean }> | { id: string; display_name: string; internal_name: string; active: boolean } | null }).therapists;
+      return Array.isArray(value) ? value : value ? [value] : [];
+    })
+    .filter((therapist) => therapist.active)
+    .sort((a, b) => a.display_name.localeCompare(b.display_name));
   const rosters = rosterRows ?? [];
 
   return <div>

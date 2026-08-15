@@ -1,6 +1,5 @@
 import { saveTherapist } from "@/app/admin/actions";
 import { EnterSubmitForm } from "@/components/admin/enter-submit-form";
-import { LocationFilter } from "@/components/admin/location-filter";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { TherapistServiceCapabilities } from "@/components/admin/therapist-service-capabilities";
 import { getAdminLocale, tr } from "@/lib/admin-i18n";
@@ -13,17 +12,11 @@ type Therapist = {
   active: boolean;
   public_display: boolean;
   therapist_services: Array<{ service_id: string }> | null;
+  location_therapists: Array<{ location_id: string }> | null;
 };
 
-type ServiceRow = {
-  id: string;
-  name: string;
-  category: string;
-};
-
-function relationOne<T>(value: T | T[] | null): T | null {
-  return Array.isArray(value) ? value[0] ?? null : value;
-}
+type ServiceRow = { id: string; name: string; category: string };
+type LocationRow = { id: string; name: string };
 
 const categoryLabels: Record<string, { en: string; zh: string }> = {
   relaxation: { en: "Relaxation", zh: "放松按摩" },
@@ -36,45 +29,37 @@ const categoryLabels: Record<string, { en: string; zh: string }> = {
   "deluxe-customised": { en: "Deluxe customised", zh: "尊享定制" },
 };
 
-export default async function TherapistsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ location?: string }>;
-}) {
+export default async function TherapistsPage() {
   const locale = await getAdminLocale();
   const supabase = await createSupabaseServerClient();
-  const { data: locationRows } = await supabase
-    .from("locations")
-    .select("id,name")
-    .eq("active", true)
-    .order("name");
-  const locations = locationRows ?? [];
-  const requestedLocation = (await searchParams).location;
-  const locationId = locations.some((location) => location.id === requestedLocation)
-    ? requestedLocation!
-    : (locations[0]?.id ?? "");
+  const [{ data: locationRows }, { data: therapistRows }, { data: serviceRows }] =
+    await Promise.all([
+      supabase.from("locations").select("id,name").eq("active", true).order("name"),
+      supabase
+        .from("therapists")
+        .select(
+          "id,display_name,internal_name,active,public_display,therapist_services(service_id),location_therapists(location_id)",
+        )
+        .order("display_name"),
+      supabase
+        .from("services")
+        .select("id,name,category")
+        .eq("active", true)
+        .order("category")
+        .order("name"),
+    ]);
 
-  const [{ data: linkRows }, { data: serviceRows }] = await Promise.all([
-    locationId
-      ? supabase
-          .from("location_therapists")
-          .select(
-            "therapists(id,display_name,internal_name,active,public_display,therapist_services(service_id))",
-          )
-          .eq("location_id", locationId)
-      : Promise.resolve({ data: [] }),
-    supabase.from("services").select("id,name,category").eq("active", true).order("category").order("name"),
-  ]);
-
-  const therapists = (linkRows ?? [])
-    .map((row) => relationOne((row as { therapists: Therapist | Therapist[] | null }).therapists))
-    .filter((therapist): therapist is Therapist => Boolean(therapist))
-    .sort((a, b) => a.display_name.localeCompare(b.display_name));
+  const locations = (locationRows ?? []) as LocationRow[];
+  const therapists = (therapistRows ?? []) as Therapist[];
   const services = (serviceRows ?? []) as ServiceRow[];
-  const selectedLocation = locations.find((location) => location.id === locationId);
 
   const form = (therapist?: Therapist) => {
-    const assigned = new Set(therapist?.therapist_services?.map((row) => row.service_id) ?? []);
+    const assignedServices = new Set(
+      therapist?.therapist_services?.map((row) => row.service_id) ?? [],
+    );
+    const assignedLocations = new Set(
+      therapist?.location_therapists?.map((row) => row.location_id) ?? [],
+    );
 
     return (
       <EnterSubmitForm
@@ -83,7 +68,6 @@ export default async function TherapistsPage({
         className="rounded-3xl border border-sand-200 bg-cream-50 p-5 shadow-sm"
       >
         <input type="hidden" name="id" value={therapist?.id || ""} />
-        <input type="hidden" name="location_id" value={locationId} />
 
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="text-sm">
@@ -106,13 +90,49 @@ export default async function TherapistsPage({
           </label>
         </div>
 
+        <fieldset className="mt-4 rounded-2xl border border-sand-200 bg-sand-50/55 p-4">
+          <legend className="px-1 text-sm font-medium text-brown-900">
+            {tr(locale, "Works at", "工作门店")}
+          </legend>
+          <p className="mb-3 text-xs text-brown-700/60">
+            {tr(
+              locale,
+              "Select every store where this employee can be rostered.",
+              "勾选这位员工可以排班的所有门店。",
+            )}
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            {locations.map((location, index) => (
+              <label
+                key={location.id}
+                className="flex items-center gap-3 rounded-xl border border-sand-200 bg-cream-50 px-3 py-2.5 text-sm text-brown-800 transition hover:border-sage-300"
+              >
+                <input
+                  type="checkbox"
+                  name="location_ids"
+                  value={location.id}
+                  defaultChecked={
+                    assignedLocations.has(location.id) || (!therapist && index === 0)
+                  }
+                  className="size-4 accent-sage-700"
+                />
+                <span>{location.name}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
         <div className="mt-3 flex flex-wrap gap-5">
           <label className="flex gap-2 text-sm">
             <input type="checkbox" name="active" defaultChecked={therapist?.active ?? true} />
             {tr(locale, "Active", "启用")}
           </label>
           <label className="flex gap-2 text-sm">
-            <input type="checkbox" name="public_display" defaultChecked={therapist?.public_display ?? true} />
+            <input
+              type="checkbox"
+              name="public_display"
+              defaultChecked={therapist?.public_display ?? true}
+            />
             {tr(locale, "Show name publicly", "向顾客显示姓名")}
           </label>
         </div>
@@ -120,7 +140,7 @@ export default async function TherapistsPage({
         <TherapistServiceCapabilities
           locale={locale}
           services={services}
-          assignedServiceIds={[...assigned]}
+          assignedServiceIds={[...assignedServices]}
           categoryLabels={categoryLabels}
         />
 
@@ -129,7 +149,9 @@ export default async function TherapistsPage({
             pendingLabel={tr(locale, "Saving…", "正在保存…")}
             className="rounded-full bg-sage-700 px-5 py-2.5 text-sm font-medium text-cream-50"
           >
-            {therapist ? tr(locale, "Save therapist", "保存治疗师") : tr(locale, "Add therapist", "添加治疗师")}
+            {therapist
+              ? tr(locale, "Save employee", "保存员工")
+              : tr(locale, "Add employee", "添加员工")}
           </SubmitButton>
           <span className="text-xs text-brown-700/60">
             {tr(locale, "Press Enter in a name field to save", "在名称输入框按回车即可保存")}
@@ -141,37 +163,33 @@ export default async function TherapistsPage({
 
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">{tr(locale, "Therapists", "治疗师")}</p>
+      <p className="text-xs uppercase tracking-[0.18em] text-gold-dark">
+        {tr(locale, "Therapists", "治疗师")}
+      </p>
       <h1 className="mt-2 font-serif text-4xl text-brown-900">
-        {tr(locale, "Store team directory", "门店治疗师管理")}
+        {tr(locale, "Team directory", "员工名册")}
       </h1>
       <p className="mt-2 text-brown-700/70">
         {tr(
           locale,
-          "Choose a store, then manage only that store’s therapist team.",
-          "先选择门店，再管理该门店自己的治疗师。",
+          "Create each employee once, then select every store where they work.",
+          "每位员工只需创建一次，然后勾选她工作的所有门店。",
         )}
       </p>
 
       {locations.length ? (
         <>
-          <div className="mt-7 border-y border-sand-200 bg-champagne-100/35 px-4 py-4 sm:rounded-2xl sm:border">
-            <LocationFilter
-              locations={locations}
-              value={locationId}
-              label={tr(locale, "Select store", "选择门店")}
-            />
-          </div>
-
           <div className="mt-7 flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-gold-dark">{selectedLocation?.name}</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-gold-dark">
+                {tr(locale, "All locations", "全部门店")}
+              </p>
               <h2 className="mt-1 font-serif text-2xl text-brown-900">
-                {tr(locale, "Therapist team", "治疗师名单")}
+                {tr(locale, "Employees", "员工")}
               </h2>
             </div>
             <span className="text-sm text-brown-700/60">
-              {therapists.length} {tr(locale, "therapists", "位治疗师")}
+              {therapists.length} {tr(locale, "employees", "位员工")}
             </span>
           </div>
 
@@ -184,7 +202,7 @@ export default async function TherapistsPage({
         </>
       ) : (
         <p className="mt-8 rounded-2xl border border-sand-200 bg-cream-50 p-5">
-          {tr(locale, "Add an active store before managing therapists.", "请先添加并启用门店，再管理治疗师。")}
+          {tr(locale, "Add an active store before managing employees.", "请先添加并启用门店，再管理员工。")}
         </p>
       )}
     </div>
