@@ -3,7 +3,6 @@ import { BookingExperience } from "@/components/booking/booking-experience";
 import { getServiceById } from "@/lib/services";
 import { locations } from "@/lib/business";
 import { hasSupabaseEnv } from "@/lib/supabase/config";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Book an Appointment",
@@ -31,29 +30,11 @@ export default async function BookPage({
 }) {
   const params = await searchParams;
   const initialServiceIds = parseServiceParam(params.service);
-  let bookingLocations = locations.map(({ id, name, phone }) => ({ id, name, phone }));
-  let bookingAvailable = hasSupabaseEnv();
-  if (hasSupabaseEnv()) {
-    try {
-      const supabase = await createSupabaseServerClient();
-      const { data, error } = await supabase
-        .from("locations")
-        .select("slug,name,phone")
-        .eq("active", true)
-        .order("name");
-      if (error) throw error;
-      if (data?.length) {
-        bookingLocations = data.map((location) => ({
-          id: location.slug,
-          name: location.name,
-          phone: location.phone,
-        }));
-      }
-    } catch (error) {
-      bookingAvailable = false;
-      console.error("Booking service is unavailable", error);
-    }
-  }
+  // Locations are stable business content and already ship with the site. Using
+  // the local list avoids blocking the first render on a database round trip;
+  // availability and booking APIs still validate every selection in Supabase.
+  const bookingLocations = locations.map(({ id, name, phone }) => ({ id, name, phone }));
+  const bookingAvailable = hasSupabaseEnv();
 
   return (
     <div className="w-full max-w-full overflow-x-hidden bg-sand-50/40">
