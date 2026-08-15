@@ -35,9 +35,9 @@ export async function POST(request: Request) {
   if (Number.isNaN(startAt.getTime()) || startAt.getTime() <= Date.now()) {
     return Response.json({ error: "Please choose a future appointment." }, { status: 400 });
   }
-  if (startAt.getTime() % (15 * 60 * 1000) !== 0) {
+  if (startAt.getTime() % (5 * 60 * 1000) !== 0) {
     return Response.json(
-      { error: "Please choose a start time in 15-minute increments." },
+      { error: "Please choose a start time in 5-minute increments." },
       { status: 400 },
     );
   }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error: invalidInterval
-          ? "Please choose a start time in 15-minute increments."
+          ? "Please choose a start time in 5-minute increments."
           : unavailable
             ? "That time is no longer available. Please choose another time."
             : error.message,

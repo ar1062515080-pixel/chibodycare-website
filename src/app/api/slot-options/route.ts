@@ -9,9 +9,9 @@ export async function GET(request: NextRequest) {
   const locationSlug = request.nextUrl.searchParams.get("locationId");
   const startAt = request.nextUrl.searchParams.get("startAt");
   if (!locationSlug || !startAt || Number.isNaN(new Date(startAt).getTime())) return Response.json({ error: "Missing or invalid slot filters." }, { status: 400 });
-  if (new Date(startAt).getTime() % (15 * 60 * 1000) !== 0) {
+  if (new Date(startAt).getTime() % (5 * 60 * 1000) !== 0) {
     return Response.json(
-      { error: "Please choose a start time in 15-minute increments." },
+      { error: "Please choose a start time in 5-minute increments." },
       { status: 400 },
     );
   }

@@ -40,7 +40,7 @@ type DragState = {
 
 const ROW_HEIGHT = 40;
 const HALF_HOUR = 30;
-const SNAP_MINUTES = 15;
+const SNAP_MINUTES = 5;
 const MIN_DURATION = 15;
 const TIME_ZONE = "Australia/Adelaide";
 const labels = {
