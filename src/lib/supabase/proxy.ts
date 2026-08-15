@@ -22,9 +22,22 @@ export async function updateSupabaseSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
   const publicAdminPaths = ["/admin/login", "/admin/register"];
+  let data: Awaited<ReturnType<typeof supabase.auth.getClaims>>["data"] | null = null;
+  try {
+    ({ data } = await supabase.auth.getClaims());
+  } catch (error) {
+    console.error("Unable to reach the authentication service", error);
+    if (!publicAdminPaths.includes(path)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.searchParams.set("error", "service-unavailable");
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
+
   if (!data?.claims && path.startsWith("/admin") && !publicAdminPaths.includes(path)) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";

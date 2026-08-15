@@ -7,13 +7,15 @@ import { BookingFlow } from "@/components/booking/booking-flow";
 export function BookingExperience({
   initialServiceIds,
   initialLocations,
+  bookingAvailable,
 }: {
   initialServiceIds: string[];
   initialLocations: BookingLocation[];
+  bookingAvailable: boolean;
 }) {
   return (
     <BookingProvider initialServiceIds={initialServiceIds} initialLocations={initialLocations}>
-      <BookingFlow />
+      <BookingFlow bookingAvailable={bookingAvailable} />
     </BookingProvider>
   );
 }

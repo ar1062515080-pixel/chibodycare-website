@@ -21,7 +21,7 @@ const stepHints: Record<number, string> = {
   3: "Choose a treatment category and duration.",
 };
 
-export function BookingFlow() {
+export function BookingFlow({ bookingAvailable }: { bookingAvailable: boolean }) {
   const { state, dispatch } = useBooking();
   const [showContactErrors, setShowContactErrors] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -102,6 +102,15 @@ export function BookingFlow() {
 
   return (
     <div className="container-page w-full max-w-full overflow-x-hidden py-8 sm:py-14">
+      {!bookingAvailable ? (
+        <div role="status" className="mb-6 rounded-3xl border border-gold/30 bg-gold/10 p-5 text-brown-900 sm:mb-8 sm:p-6">
+          <p className="font-serif text-xl font-medium">Online booking is temporarily unavailable</p>
+          <p className="mt-2 text-sm leading-relaxed text-brown-700">
+            You can still browse our locations and treatments. To make an appointment now,
+            please choose a studio below and call the number shown in your booking summary.
+          </p>
+        </div>
+      ) : null}
       {!isConfirmation ? (
         <div className="mb-6 min-w-0 rounded-3xl border border-sand-100 bg-cream-50 p-5 shadow-sm sm:mb-8 sm:p-6">
           <StepIndicator />
@@ -155,7 +164,7 @@ export function BookingFlow() {
                 <button
                   type="button"
                   onClick={handleNext}
-                  disabled={submitting || (!canProceed && state.step !== 4)}
+                  disabled={!bookingAvailable || submitting || (!canProceed && state.step !== 4)}
                   className="inline-flex items-center gap-2 rounded-full bg-sage-600 px-5 py-3 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-sage-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 sm:px-7"
                 >
                   {submitting
