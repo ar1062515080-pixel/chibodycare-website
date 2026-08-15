@@ -7,6 +7,16 @@ import { getAdminLocale, tr } from "@/lib/admin-i18n";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const TIME_ZONE = "Australia/Adelaide";
+const SERVICE_CATEGORY_LABELS: Record<string, string> = {
+  relaxation: "Relaxation massage",
+  "deep-recovery": "Deep recovery massage",
+  "foot-care": "Foot care",
+  aromatherapy: "Aromatherapy massage",
+  "remedial-pregnancy": "Remedial / pregnancy massage",
+  acupuncture: "Acupuncture",
+  "additional-services": "Additional services",
+  "deluxe-customised": "Deluxe customised massage",
+};
 
 type TherapistRelation = { id: string; display_name: string };
 type ServiceRelation = { id?: string; name?: string; category?: string; duration_minutes?: number; price_cents?: number };
@@ -59,6 +69,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const dailyNotes = parseDailyNotes(daily.notes);
   const vouchers = (vouchersResult.data ?? []) as VoucherSale[];
   const services = (servicesResult.data ?? []) as ServiceRelation[];
+  const serviceCategories = [...new Set(services.map((service) => service.category).filter((category): category is string => Boolean(category)))];
 
   const therapistMap = new Map<string, CalendarTherapist>();
   for (const roster of rosterRows) {
@@ -136,7 +147,8 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Email optional", "邮箱（可选）")}<input type="email" name="customer_email" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Start time", "开始时间")}<input required type="time" step={300} name="start_time" defaultValue="09:00" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <label className="text-xs font-medium text-brown-700">{tr(locale, "Therapist", "按摩师")}<select name="therapist_id" defaultValue="any" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm"><option value="any">{tr(locale, "Any professional", "任意按摩师")}</option>{therapists.map((therapist) => <option key={therapist.id} value={therapist.id}>{therapist.displayName}</option>)}</select></label>
-        <label className="text-xs font-medium text-brown-700">{tr(locale, "Treatment", "项目")}<select required name="service_id" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm"><option value="">{tr(locale, "Select treatment", "选择项目")}</option>{services.map((service) => <option key={service.id} value={service.id}>{service.category} · {service.name} · {service.duration_minutes} min · {formatMoney(cents(service.price_cents))}</option>)}</select></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Duration (minutes)", "按摩时长（分钟）")}<input required type="number" min={5} max={300} step={5} name="duration_minutes" defaultValue={60} inputMode="numeric" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
+        <label className="text-xs font-medium text-brown-700">{tr(locale, "Treatment category", "项目大类")}<select required name="service_category" defaultValue="remedial-pregnancy" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm"><option value="">{tr(locale, "Select category", "选择项目大类")}</option>{serviceCategories.map((category) => <option key={category} value={category}>{SERVICE_CATEGORY_LABELS[category] ?? category}</option>)}</select></label>
         <label className="text-xs font-medium text-brown-700 md:col-span-2 xl:col-span-5">{tr(locale, "Notes", "备注")}<input name="notes" className="mt-1 block w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm" /></label>
         <SubmitButton pendingLabel={tr(locale, "Adding…", "添加中…")} className="self-end rounded-xl bg-brown-900 px-5 py-2.5 text-sm text-cream-50">{tr(locale, "Add booking", "添加预约")}</SubmitButton>
       </form>

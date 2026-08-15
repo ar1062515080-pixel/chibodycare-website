@@ -336,27 +336,38 @@ export async function createAdminBookingSafe(formData: FormData) {
   const customerEmail = String(formData.get("customer_email") ?? "").trim().toLowerCase();
   const notes = String(formData.get("notes") ?? "").trim();
   const locationId = String(formData.get("location_id") ?? "");
-  const serviceId = String(formData.get("service_id") ?? "");
+  const serviceCategory = String(formData.get("service_category") ?? "").trim();
+  const requestedDuration = Number(formData.get("duration_minutes"));
   const therapistValue = String(formData.get("therapist_id") ?? "");
   const date = String(formData.get("date") ?? "");
   const time = String(formData.get("start_time") ?? "");
   const fail = (message: string): never => redirect(`/admin/bookings?date=${encodeURIComponent(date)}&location=${encodeURIComponent(locationId)}&error=${encodeURIComponent(message)}`);
 
-  if (!customerName || !customerPhone || !locationId || !serviceId || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
-    fail("请填写客户姓名、电话、开始时间和项目。");
+  if (!customerName || !customerPhone || !locationId || !serviceCategory || !Number.isInteger(requestedDuration) || requestedDuration < 5 || requestedDuration > 300 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) {
+    fail("请填写客户姓名、电话、开始时间、时长和项目大类。");
   }
 
   const startAt = adelaideLocalToUtc(date, time);
-  if (startAt <= new Date()) fail("预约时间必须晚于当前时间。");
 
-  const { data: service, error: serviceError } = await supabase
+  const { data: matchingServices, error: serviceError } = await supabase
     .from("services")
-    .select("id,duration_minutes")
-    .eq("id", serviceId)
+    .select("id,slug,duration_minutes")
+    .eq("category", serviceCategory)
+    .eq("duration_minutes", requestedDuration)
     .eq("active", true)
-    .single();
-  if (serviceError || !service) fail("所选项目当前不可预约。");
-  const serviceDuration = Number(service?.duration_minutes ?? 0);
+    .order("slug");
+  const serviceCandidates = matchingServices ?? [];
+  if (serviceError || !serviceCandidates.length) fail("这个项目大类没有对应时长，请调整时长后重试。");
+  const canonicalPrefix: Record<string, string> = {
+    "remedial-pregnancy": "remedial",
+    "deluxe-customised": "deluxe",
+  };
+  const canonicalSlug = `${canonicalPrefix[serviceCategory] ?? serviceCategory}-${requestedDuration}`;
+  const service = serviceCandidates.find((item) => item.slug === canonicalSlug)
+    ?? (serviceCandidates.length === 1 ? serviceCandidates[0] : null);
+  if (!service) return fail("这个大类和时长包含多个不同项目，请选择其他时长或在备注中说明具体项目。");
+  const serviceId = service.id;
+  const serviceDuration = Number(service.duration_minutes);
 
   const { data: capableRows, error: capableError } = await supabase
     .from("therapist_services")
