@@ -19,6 +19,7 @@ function toStartAt(dateKey: string, time: string) {
   if (!year || !month || !day || Number.isNaN(hour) || Number.isNaN(minute)) {
     return null;
   }
+  if (minute % 15 !== 0) return null;
   return new Date(year, month - 1, day, hour, minute, 0, 0).toISOString();
 }
 
@@ -26,6 +27,9 @@ export function StepDateTime() {
   const { state, dispatch } = useBooking();
   const minDateKey = useMemo(() => todayDateKey(), []);
   const [timeValue, setTimeValue] = useState(state.time ?? "");
+  const hasInvalidInterval = Boolean(
+    timeValue && Number(timeValue.split(":")[1]) % 15 !== 0,
+  );
 
   const applyDateTime = (dateKey: string, time: string) => {
     if (!dateKey || dateKey < minDateKey) return;
@@ -95,9 +99,15 @@ export function StepDateTime() {
         </div>
 
         <p className="mt-3 text-xs leading-relaxed text-brown-700/65">
-          Please enter the time you would like to book. We will only show
-          therapists and treatments that can fit that exact time.
+          Choose a time in 15-minute increments, such as 3:00pm, 3:15pm,
+          3:30pm or 3:45pm. We will only show therapists and treatments that
+          can fit that exact time.
         </p>
+        {hasInvalidInterval ? (
+          <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+            Please choose a time on the hour, quarter past, half past or quarter to the hour.
+          </p>
+        ) : null}
       </div>
 
       {!state.startAt ? (

@@ -35,6 +35,12 @@ export async function POST(request: Request) {
   if (Number.isNaN(startAt.getTime()) || startAt.getTime() <= Date.now()) {
     return Response.json({ error: "Please choose a future appointment." }, { status: 400 });
   }
+  if (startAt.getTime() % (15 * 60 * 1000) !== 0) {
+    return Response.json(
+      { error: "Please choose a start time in 15-minute increments." },
+      { status: 400 },
+    );
+  }
 
   const supabase = await createSupabaseServerClient();
   const [locationResult, serviceResult] = await Promise.all([
@@ -59,11 +65,14 @@ export async function POST(request: Request) {
     const unavailable = /SLOT_UNAVAILABLE|NO_ROSTER|SERVICE_NOT_AVAILABLE/.test(
       error.message,
     );
+    const invalidInterval = error.message.includes("INVALID_SLOT_INTERVAL");
     return Response.json(
       {
-        error: unavailable
-          ? "That time is no longer available. Please choose another time."
-          : error.message,
+        error: invalidInterval
+          ? "Please choose a start time in 15-minute increments."
+          : unavailable
+            ? "That time is no longer available. Please choose another time."
+            : error.message,
       },
       { status: unavailable ? 409 : 400 },
     );
